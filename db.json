@@ -1,0 +1,597 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "Leanne Graham",
+      "username": "Bret",
+      "email": "leanne@example.com",
+      "phone": "1-770-736-8031",
+      "website": "hildegard.org",
+      "avatar": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&q=80",
+      "address": {
+        "street": "Kulas Light",
+        "suite": "Apt. 556",
+        "city": "Kyoto",
+        "zipcode": "92998-3874"
+      },
+      "company": {
+        "name": "Romaguera-Crona",
+        "catchPhrase": "Seeking silence in high altitudes and stories in old streets.",
+        "bs": "travel media"
+      }
+    },
+    {
+      "id": 2,
+      "name": "Ervin Howell",
+      "username": "Antonette",
+      "email": "ervin@example.com",
+      "phone": "010-692-6593",
+      "website": "anastasia.net",
+      "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80",
+      "address": {
+        "street": "Victor Plains",
+        "suite": "Suite 879",
+        "city": "Reykjavik",
+        "zipcode": "90566-7771"
+      },
+      "company": {
+        "name": "Deckow-Crist",
+        "catchPhrase": "Chasing northern light and quiet roads.",
+        "bs": "field notes"
+      }
+    },
+    {
+      "id": 3,
+      "name": "Clementine Bauch",
+      "username": "Samantha",
+      "email": "clementine@example.com",
+      "phone": "1-463-123-4447",
+      "website": "ramiro.info",
+      "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80",
+      "address": {
+        "street": "Douglas Extension",
+        "suite": "Suite 847",
+        "city": "Lisbon",
+        "zipcode": "59590-4157"
+      },
+      "company": {
+        "name": "Romaguera-Jacobson",
+        "catchPhrase": "Finding texture in coastal cities.",
+        "bs": "city travel"
+      }
+    },
+    {
+      "name": "Mason Tester",
+      "username": "maso.tester",
+      "email": "Mason.tester@test.com",
+      "phone": "0551234567",
+      "website": "1234",
+      "address": {
+        "street": "Levi Daniel",
+        "suite": "123",
+        "city": "Jerusalem",
+        "zipcode": "1234567"
+      },
+      "company": {
+        "name": "Travelout",
+        "catchPhrase": "Seeking memorable routes and honest local stories.",
+        "bs": "traveler"
+      },
+      "avatar": "https://images.unsplash.com/photo-1527980965255-d3b416303d12?auto=format&fit=crop&w=300&q=80",
+      "id": 4
+    }
+  ],
+  "trips": [
+    {
+      "id": 1,
+      "userId": 1,
+      "title": "Kyoto, Japan",
+      "dates": "Oct 12 - Oct 20",
+      "image": "https://images.unsplash.com/photo-1528164344705-47542687000d?auto=format&fit=crop&w=1400&q=80"
+    },
+    {
+      "id": 2,
+      "userId": 1,
+      "title": "Swiss Alps",
+      "dates": "Jan 4 - Jan 12",
+      "image": "https://images.unsplash.com/photo-1491555103944-7c647fd857e6?auto=format&fit=crop&w=1400&q=80"
+    },
+    {
+      "id": 3,
+      "userId": 1,
+      "title": "Amalfi Coast",
+      "dates": "Jun 2 - Jun 10",
+      "image": "https://images.unsplash.com/photo-1516483638261-f4dbaf036963?auto=format&fit=crop&w=1400&q=80"
+    },
+    {
+      "id": 4,
+      "userId": 2,
+      "title": "Iceland South Coast",
+      "dates": "Feb 9 - Feb 16",
+      "image": "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1400&q=80"
+    },
+    {
+      "id": 5,
+      "userId": 3,
+      "title": "Lisbon Streets",
+      "dates": "Apr 7 - Apr 14",
+      "image": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1400&q=80"
+    },
+    {
+      "userId": 4,
+      "title": "Jerusalem",
+      "dates": "12 - 18, October",
+      "image": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Jerusalem%20Old%20City%20Western%20Wall%20%28Wailing%20Wall%2C%20Kotel%2C%20or%20Buraq%20Wall%29%20%2829306060258%29.jpg?width=1400",
+      "id": 6
+    }
+  ],
+  "todos": [
+    {
+      "id": 1,
+      "userId": 1,
+      "title": "Portable charger",
+      "completed": true,
+      "tripId": 1,
+      "section": "packing",
+      "category": "Tech"
+    },
+    {
+      "id": 2,
+      "userId": 1,
+      "title": "Universal adapter",
+      "completed": false,
+      "tripId": 1,
+      "section": "packing",
+      "category": "Tech"
+    },
+    {
+      "id": 3,
+      "userId": 1,
+      "title": "Camera and lenses",
+      "completed": false,
+      "tripId": 1,
+      "section": "packing",
+      "category": "Tech"
+    },
+    {
+      "id": 4,
+      "userId": 1,
+      "title": "Book Kyoto food tour",
+      "completed": true,
+      "tripId": 1,
+      "section": "bucket",
+      "category": "Food",
+      "subtitle": "Evening tasting route",
+      "image": "https://images.unsplash.com/photo-1528360983277-13d401cdc186?auto=format&fit=crop&w=300&q=80"
+    },
+    {
+      "id": 5,
+      "userId": 1,
+      "title": "Confirm hotel check-in",
+      "completed": false,
+      "tripId": 1,
+      "section": "packing",
+      "category": "Documents"
+    },
+    {
+      "id": 9,
+      "userId": 1,
+      "title": "Visit Kinkaku-ji",
+      "completed": false,
+      "tripId": 1,
+      "section": "bucket",
+      "category": "Temple",
+      "subtitle": "Golden Pavilion",
+      "image": "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=300&q=80"
+    },
+    {
+      "id": 10,
+      "userId": 1,
+      "title": "Arashiyama Bamboo Grove",
+      "completed": false,
+      "tripId": 1,
+      "section": "bucket",
+      "category": "Walk",
+      "subtitle": "Morning walk",
+      "image": "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?auto=format&fit=crop&w=300&q=80"
+    },
+    {
+      "id": 11,
+      "userId": 1,
+      "title": "Thermal socks",
+      "completed": false,
+      "tripId": 2,
+      "section": "packing",
+      "category": "Clothing"
+    },
+    {
+      "id": 12,
+      "userId": 1,
+      "title": "Reserve mountain train",
+      "completed": true,
+      "tripId": 2,
+      "section": "bucket",
+      "category": "Transit",
+      "subtitle": "Jungfrau morning ride",
+      "image": "https://images.unsplash.com/photo-1491555103944-7c647fd857e6?auto=format&fit=crop&w=300&q=80"
+    },
+    {
+      "id": 13,
+      "userId": 1,
+      "title": "Light linen shirt",
+      "completed": false,
+      "tripId": 3,
+      "section": "packing",
+      "category": "Clothing"
+    },
+    {
+      "id": 14,
+      "userId": 1,
+      "title": "Book sunset ferry",
+      "completed": false,
+      "tripId": 3,
+      "section": "bucket",
+      "category": "Coast",
+      "subtitle": "Positano to Amalfi",
+      "image": "https://images.unsplash.com/photo-1516483638261-f4dbaf036963?auto=format&fit=crop&w=300&q=80"
+    },
+    {
+      "id": 6,
+      "userId": 2,
+      "title": "Thermal base layer",
+      "completed": false,
+      "tripId": 4,
+      "section": "packing",
+      "category": "Clothing"
+    },
+    {
+      "id": 7,
+      "userId": 2,
+      "title": "Waterproof boots",
+      "completed": true,
+      "tripId": 4,
+      "section": "packing",
+      "category": "Clothing"
+    },
+    {
+      "id": 8,
+      "userId": 3,
+      "title": "Reserve tram tickets",
+      "completed": false,
+      "tripId": 5,
+      "section": "bucket",
+      "category": "Transit",
+      "subtitle": "Route 28",
+      "image": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=300&q=80"
+    },
+    {
+      "userId": 4,
+      "tripId": 6,
+      "title": "Teffilin",
+      "completed": false,
+      "section": "packing",
+      "category": "Essentials",
+      "subtitle": "",
+      "id": 15
+    },
+    {
+      "userId": 4,
+      "tripId": 6,
+      "title": "The Western Wall",
+      "completed": false,
+      "section": "bucket",
+      "category": "Experience",
+      "subtitle": "The Jewish Quarter",
+      "image": "https://images.unsplash.com/photo-1593019612399-86daa4d18cd5?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "id": 16
+    },
+    {
+      "userId": 4,
+      "tripId": 6,
+      "title": "Mahane Yehuda Market",
+      "completed": false,
+      "section": "bucket",
+      "category": "Experience",
+      "subtitle": "On Fridays",
+      "image": "https://images.unsplash.com/photo-1645028845965-d42def5e1e0f?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "id": 17
+    }
+  ],
+  "posts": [
+    {
+      "id": 1,
+      "userId": 1,
+      "title": "Echoes of the Matterhorn",
+      "body": "The crisp mountain air hits different here. Every view looks like it was meticulously painted. Today's hike up the Gornergrat offered unparalleled vistas of the iconic peak, bathed in the golden light of late afternoon.",
+      "image": "https://images.unsplash.com/photo-1491555103944-7c647fd857e6?auto=format&fit=crop&w=1200&q=80",
+      "location": "Switzerland",
+      "date": "Oct 12, 2023",
+      "tags": [
+        "Hiking",
+        "Nature"
+      ]
+    },
+    {
+      "id": 2,
+      "userId": 1,
+      "title": "Neon Nights in Shinjuku",
+      "body": "Navigating the labyrinthine alleys of Omoide Yokocho. The aroma of yakitori fills the air as locals and travelers alike crowd into tiny, intimate eateries. It's a sensory overload in the best possible way.",
+      "image": "https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&w=1200&q=80",
+      "location": "Japan",
+      "date": "Sep 28, 2023",
+      "tags": [
+        "Urban",
+        "Food"
+      ]
+    },
+    {
+      "id": 3,
+      "userId": 1,
+      "title": "Azure Dreams in Oia",
+      "body": "Waking up to the caldera view never gets old. The contrast between the stark white buildings and the impossibly blue sea is mesmerizing. Spent the afternoon exploring quiet corners away from the crowds.",
+      "image": "https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=1200&q=80",
+      "location": "Greece",
+      "date": "Aug 05, 2023",
+      "tags": [
+        "Relaxation",
+        "Coastal"
+      ]
+    },
+    {
+      "id": 4,
+      "userId": 2,
+      "title": "Black Sand and Northern Wind",
+      "body": "Iceland's south coast feels raw and alive. The ocean moves like metal and every cliff line looks newly carved.",
+      "image": "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1200&q=80"
+    },
+    {
+      "id": 5,
+      "userId": 3,
+      "title": "Tiles and Hills in Lisbon",
+      "body": "Every street climbs toward another view. Blue tiles, yellow trams, and late afternoon light turn the city into a layered map.",
+      "image": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80"
+    }
+  ],
+  "comments": [
+    {
+      "id": 1,
+      "postId": 1,
+      "userId": 1,
+      "name": "Leanne comment",
+      "email": "leanne@example.com",
+      "body": "Saving this route for the next Amalfi trip."
+    },
+    {
+      "id": 2,
+      "postId": 1,
+      "userId": 2,
+      "name": "Ervin comment",
+      "email": "ervin@example.com",
+      "body": "The morning description feels exactly right."
+    },
+    {
+      "id": 3,
+      "postId": 2,
+      "userId": 1,
+      "name": "Leanne comment",
+      "email": "leanne@example.com",
+      "body": "I still remember the silence near the ridge."
+    },
+    {
+      "id": 4,
+      "postId": 2,
+      "userId": 3,
+      "name": "Clementine comment",
+      "email": "clementine@example.com",
+      "body": "This makes me want to pack a real camera again."
+    },
+    {
+      "id": 5,
+      "postId": 3,
+      "userId": 1,
+      "name": "Leanne comment",
+      "email": "leanne@example.com",
+      "body": "Best meal of the whole week was in that alley."
+    },
+    {
+      "id": 6,
+      "postId": 4,
+      "userId": 2,
+      "name": "Ervin comment",
+      "email": "ervin@example.com",
+      "body": "The wind made every photo harder and better."
+    },
+    {
+      "id": 7,
+      "postId": 5,
+      "userId": 3,
+      "name": "Clementine comment",
+      "email": "clementine@example.com",
+      "body": "Lisbon is all rhythm and texture."
+    },
+    {
+      "postId": 4,
+      "userId": 1,
+      "name": "Leanne Graham comment",
+      "email": "leanne@example.com",
+      "body": "niceee",
+      "id": 8
+    },
+    {
+      "postId": 4,
+      "userId": 1,
+      "name": "Leanne Graham comment",
+      "email": "leanne@example.com",
+      "body": "loved it!!",
+      "id": 9
+    },
+    {
+      "postId": 5,
+      "userId": 1,
+      "name": "Leanne Graham comment",
+      "email": "leanne@example.com",
+      "body": "lisbon is pretty!",
+      "id": 10
+    }
+  ],
+  "albums": [
+    {
+      "id": 1,
+      "userId": 1,
+      "title": "Kyoto Autumn",
+      "cover": "https://images.unsplash.com/photo-1528164344705-47542687000d?auto=format&fit=crop&w=1200&q=80"
+    },
+    {
+      "id": 2,
+      "userId": 1,
+      "title": "Swiss Alps",
+      "cover": "https://images.unsplash.com/photo-1491555103944-7c647fd857e6?auto=format&fit=crop&w=1200&q=80"
+    },
+    {
+      "id": 3,
+      "userId": 1,
+      "title": "Amalfi Coast",
+      "cover": "https://images.unsplash.com/photo-1516483638261-f4dbaf036963?auto=format&fit=crop&w=1200&q=80"
+    },
+    {
+      "id": 4,
+      "userId": 2,
+      "title": "Iceland Raw",
+      "cover": "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1200&q=80"
+    },
+    {
+      "id": 5,
+      "userId": 3,
+      "title": "Lisbon Streets",
+      "cover": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80"
+    }
+  ],
+  "photos": [
+    {
+      "id": 1,
+      "albumId": 1,
+      "title": "Temple through red maple leaves",
+      "url": "https://images.unsplash.com/photo-1528164344705-47542687000d?auto=format&fit=crop&w=1200&q=80",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1528164344705-47542687000d?auto=format&fit=crop&w=300&q=80"
+    },
+    {
+      "id": 2,
+      "albumId": 1,
+      "title": "Arashiyama bamboo path",
+      "url": "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?auto=format&fit=crop&w=1200&q=80",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?auto=format&fit=crop&w=300&q=80"
+    },
+    {
+      "id": 3,
+      "albumId": 1,
+      "title": "Lanterns in Gion",
+      "url": "https://images.unsplash.com/photo-1528360983277-13d401cdc186?auto=format&fit=crop&w=1200&q=80",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1528360983277-13d401cdc186?auto=format&fit=crop&w=300&q=80"
+    },
+    {
+      "id": 4,
+      "albumId": 1,
+      "title": "Quiet temple garden",
+      "url": "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1200&q=80",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=300&q=80"
+    },
+    {
+      "id": 5,
+      "albumId": 1,
+      "title": "Kamo river evening",
+      "url": "https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d?auto=format&fit=crop&w=1200&q=80",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d?auto=format&fit=crop&w=300&q=80"
+    },
+    {
+      "id": 6,
+      "albumId": 1,
+      "title": "Autumn roofline",
+      "url": "https://images.unsplash.com/photo-1526481280693-3bfa7568e0f3?auto=format&fit=crop&w=1200&q=80",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1526481280693-3bfa7568e0f3?auto=format&fit=crop&w=300&q=80"
+    },
+    {
+      "id": 7,
+      "albumId": 1,
+      "title": "Stone path and leaves",
+      "url": "https://images.unsplash.com/photo-1542640244-7e672d6cef4e?auto=format&fit=crop&w=1200&q=80",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1542640244-7e672d6cef4e?auto=format&fit=crop&w=300&q=80"
+    },
+    {
+      "id": 8,
+      "albumId": 1,
+      "title": "Tea house doorway",
+      "url": "https://images.unsplash.com/photo-1505069446780-4ef442b5207f?auto=format&fit=crop&w=1200&q=80",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1505069446780-4ef442b5207f?auto=format&fit=crop&w=300&q=80"
+    },
+    {
+      "id": 9,
+      "albumId": 2,
+      "title": "Matterhorn reflection",
+      "url": "https://images.unsplash.com/photo-1491555103944-7c647fd857e6?auto=format&fit=crop&w=1200&q=80",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1491555103944-7c647fd857e6?auto=format&fit=crop&w=300&q=80"
+    },
+    {
+      "id": 10,
+      "albumId": 2,
+      "title": "Snow ridge trail",
+      "url": "https://images.unsplash.com/photo-1485738422979-f5c462d49f74?auto=format&fit=crop&w=1200&q=80",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1485738422979-f5c462d49f74?auto=format&fit=crop&w=300&q=80"
+    },
+    {
+      "id": 11,
+      "albumId": 2,
+      "title": "Alpine train line",
+      "url": "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=300&q=80"
+    },
+    {
+      "id": 12,
+      "albumId": 2,
+      "title": "Blue mountain morning",
+      "url": "https://images.unsplash.com/photo-1454496522488-7a8e488e8606?auto=format&fit=crop&w=1200&q=80",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1454496522488-7a8e488e8606?auto=format&fit=crop&w=300&q=80"
+    },
+    {
+      "id": 13,
+      "albumId": 3,
+      "title": "Positano hillside",
+      "url": "https://images.unsplash.com/photo-1516483638261-f4dbaf036963?auto=format&fit=crop&w=1200&q=80",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1516483638261-f4dbaf036963?auto=format&fit=crop&w=300&q=80"
+    },
+    {
+      "id": 14,
+      "albumId": 3,
+      "title": "Mediterranean stairs",
+      "url": "https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=1200&q=80",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=300&q=80"
+    },
+    {
+      "id": 15,
+      "albumId": 3,
+      "title": "Coastal boat wake",
+      "url": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=300&q=80"
+    },
+    {
+      "id": 16,
+      "albumId": 4,
+      "title": "Iceland black sand",
+      "url": "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1200&q=80",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=300&q=80"
+    },
+    {
+      "id": 17,
+      "albumId": 4,
+      "title": "Waterfall mist",
+      "url": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=300&q=80"
+    },
+    {
+      "id": 18,
+      "albumId": 5,
+      "title": "Lisbon tram line",
+      "url": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=300&q=80"
+    }
+  ]
+}
