@@ -39,6 +39,7 @@ export default function App() {
       <Route element={<RequireAuth />}>
         <Route element={<AppShell />}>
           <Route path="/home" element={<Home />} />
+          <Route path="/home/:postId" element={<Home />} />
           <Route path="/users/:userId/todos" element={<Todos />} />
           <Route path="/users/:userId/posts" element={<Posts />} />
           <Route path="/users/:userId/posts/:postId" element={<Posts />} />
