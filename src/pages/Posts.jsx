@@ -97,11 +97,7 @@ export default function Posts() {
   const likeCount = activeLiked ? "1.3k" : "1.2k";
   const reshareCount = activeReshared ? 19 : 18;
   const comments = commentsByPost[selectedPost.id] || [];
-  const postPhotos = [
-    selectedPost.image || travelImages[selectedIndex % travelImages.length],
-    travelImages[(selectedIndex + 1) % travelImages.length],
-    travelImages[(selectedIndex + 4) % travelImages.length]
-  ];
+  const postPhotos = getPostImages(selectedPost, selectedIndex);
   const image = postPhotos[photoIndex];
   const avatar = author?.avatar || avatarImages[selectedIndex % avatarImages.length];
 
@@ -174,16 +170,18 @@ export default function Posts() {
             </>
           )}
 
-          <div className="absolute bottom-7 left-1/2 flex -translate-x-1/2 gap-2">
-            {postPhotos.map((photo, index) => (
-              <button
-                key={`${selectedPost.id}-${photo}-${index}`}
-                className={`h-2 rounded-full transition ${index === photoIndex ? "w-7 bg-white" : "w-2 bg-white/55"}`}
-                onClick={() => goToPhoto(index)}
-                aria-label={`Open photo ${index + 1}`}
-              />
-            ))}
-          </div>
+          {postPhotos.length > 1 && (
+            <div className="absolute bottom-7 left-1/2 flex -translate-x-1/2 gap-2">
+              {postPhotos.map((photo, index) => (
+                <button
+                  key={`${selectedPost.id}-${photo}-${index}`}
+                  className={`h-2 rounded-full transition ${index === photoIndex ? "w-7 bg-white" : "w-2 bg-white/55"}`}
+                  onClick={() => goToPhoto(index)}
+                  aria-label={`Open photo ${index + 1}`}
+                />
+              ))}
+            </div>
+          )}
         </section>
 
         <article className="flex min-h-[520px] flex-col rounded-[32px] bg-white p-8 shadow-spatial md:min-h-[760px] md:p-10">
@@ -307,4 +305,23 @@ export default function Posts() {
       )}
     </div>
   );
+}
+
+function normalizePostImages(images, fallbackIndex) {
+  const uniqueImages = [];
+  images.forEach((image) => {
+    if (typeof image !== "string") return;
+    const value = image.trim();
+    if (value && !uniqueImages.includes(value)) {
+      uniqueImages.push(value);
+    }
+  });
+  return uniqueImages.length ? uniqueImages : [travelImages[Math.abs(fallbackIndex) % travelImages.length]];
+}
+
+function getPostImages(post, index) {
+  if (Array.isArray(post.images) && post.images.length) {
+    return normalizePostImages(post.images, index);
+  }
+  return normalizePostImages([post.image], index);
 }
