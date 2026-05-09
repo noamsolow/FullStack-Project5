@@ -306,27 +306,20 @@ function JournalDisplay({ post, index, user, editing, setEditing, onSave, onDele
           )}
 
           {displayImages.length > 1 && (
-            <div className="absolute bottom-7 right-7 flex max-w-[46%] gap-2 overflow-x-auto rounded-full bg-white/80 p-2 shadow-sm backdrop-blur-md">
+            <div className="absolute bottom-7 left-1/2 flex -translate-x-1/2 gap-2">
               {displayImages.map((photo, photoIndexValue) => (
                 <button
                   key={`${photo}-${photoIndexValue}`}
-                  className={`h-2 rounded-full transition ${photoIndexValue === photoIndex ? "w-8 bg-primary" : "w-2 bg-outline-variant"}`}
+                  className={`h-2 rounded-full transition ${photoIndexValue === photoIndex ? "w-8 bg-white" : "w-2 bg-white/55"}`}
                   onClick={() => goToPhoto(photoIndexValue)}
                   aria-label={`Open photo ${photoIndexValue + 1}`}
                 />
               ))}
             </div>
           )}
-
-          <div className="absolute bottom-7 left-7 rounded-[24px] bg-white/85 p-5 shadow-sm backdrop-blur-md">
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">
-              Personal Log{displayImages.length > 1 ? ` - Photo ${photoIndex + 1} of ${displayImages.length}` : ""}
-            </p>
-            <h2 className="mt-2 max-w-md font-serif text-3xl leading-tight">{post.title}</h2>
-          </div>
         </section>
 
-        <article className="flex min-h-[520px] flex-col rounded-[32px] bg-white p-8 shadow-spatial md:min-h-[760px] md:p-10">
+        <article className="flex min-h-[520px] flex-col overflow-hidden rounded-[32px] bg-white p-8 shadow-spatial md:min-h-[760px] md:max-h-[760px] md:p-10">
           <header className="mb-12 flex items-center justify-between gap-4">
             <div className="flex min-w-0 items-center gap-4">
               <img src={avatar} alt={user.name} className="h-14 w-14 rounded-full border border-outline-variant object-cover" />
@@ -358,9 +351,9 @@ function JournalDisplay({ post, index, user, editing, setEditing, onSave, onDele
               />
             </section>
           ) : (
-            <section className="flex-1">
+            <section className="min-h-0 flex-1 overflow-y-auto pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <p className="mb-4 text-sm font-bold uppercase tracking-[0.18em] text-primary">Journal</p>
-              <h1 className="max-w-[640px] font-serif text-5xl font-medium leading-[1.12] md:text-6xl">{post.title}</h1>
+              <h1 className="max-w-[640px] break-words font-serif text-5xl font-medium leading-[1.12] md:text-6xl">{post.title}</h1>
               <div className="mt-5 flex flex-wrap items-center gap-3 text-sm font-bold">
                 <span className="uppercase tracking-[0.16em] text-secondary">{location}</span>
                 <span className="text-outline">•</span>
@@ -423,19 +416,17 @@ function JournalDisplay({ post, index, user, editing, setEditing, onSave, onDele
               <Icon name="delete" size={18} />
               Delete
             </button>
-            {hasMultiple && !isEditing && (
-              <div className="ml-auto flex gap-2">
-                <button className="icon-btn" onClick={onPrevious} aria-label="Previous journal post">
-                  <Icon name="chevron_left" />
-                </button>
-                <button className="icon-btn" onClick={onNext} aria-label="Next journal post">
-                  <Icon name="chevron_right" />
-                </button>
-              </div>
-            )}
           </footer>
         </article>
       </main>
+
+      {hasMultiple && !isEditing && (
+        <div className="mt-10 hidden justify-center md:flex">
+          <button className="text-outline-variant transition hover:text-primary" onClick={onNext} aria-label="Next journal post">
+            <Icon name="chevron_right" className="rotate-90" size={34} />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
