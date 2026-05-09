@@ -12,6 +12,7 @@ const initialDraft = {
   location: "",
   date: "",
   image: "",
+  images: [],
   tags: ""
 };
 
@@ -60,11 +61,11 @@ export default function Home() {
   }
 
   async function handlePhotoUpload(event) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    const dataUrl = await readFileAsDataUrl(file);
-    setSelectedFileName(file.name);
-    updateDraft("image", dataUrl);
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0) return;
+    const dataUrls = await Promise.all(files.map(readFileAsDataUrl));
+    setSelectedFileName(files.map((file) => file.name).join(", "));
+    setDraft((current) => ({ ...current, images: dataUrls }));
     setExpanded(true);
   }
 
@@ -78,11 +79,13 @@ export default function Home() {
     setSubmitting(true);
     setError("");
     try {
+      const images = normalizePostImages([...draft.images, ...parseImageList(draft.image)], posts.length);
       const created = await api.post("/posts", {
         userId: user.id,
         title: draft.title.trim(),
         body: draft.body.trim() || "A new memory from the road, saved while the details are still fresh.",
-        image: draft.image.trim() || travelImages[posts.length % travelImages.length],
+        image: images[0],
+        images,
         location: draft.location.trim() || user.address?.city || "Travel Log",
         date: draft.date.trim() || formatDate(new Date()),
         tags: parseTags(draft.tags)
@@ -101,12 +104,14 @@ export default function Home() {
 
   async function savePost(post) {
     if (!editing?.title.trim()) return;
+    const images = normalizePostImages(parseImageList(editing.imagesText || editing.image), posts.findIndex((item) => item.id === post.id));
     const updated = await api.patch(`/posts/${post.id}`, {
       title: editing.title.trim(),
       body: editing.body.trim(),
       location: editing.location.trim(),
       date: editing.date.trim(),
-      image: editing.image.trim(),
+      image: images[0],
+      images,
       tags: parseTags(editing.tags)
     });
     setPosts((current) => current.map((item) => (item.id === post.id ? updated : item)));
@@ -190,8 +195,8 @@ export default function Home() {
             <div className="flex gap-3">
               <label className="btn-secondary cursor-pointer">
                 <Icon name="image" size={18} />
-                Photo
-                <input className="sr-only" type="file" accept="image/*" onChange={handlePhotoUpload} />
+                Photos
+                <input className="sr-only" type="file" accept="image/*" multiple onChange={handlePhotoUpload} />
               </label>
               <button className="btn-primary !rounded-xl !px-7" disabled={submitting}>
                 {submitting ? "Publishing..." : "Publish"}
@@ -210,15 +215,22 @@ export default function Home() {
               <input className="field" value={draft.location} onChange={(event) => updateDraft("location", event.target.value)} placeholder="Location" />
               <input className="field" value={draft.date} onChange={(event) => updateDraft("date", event.target.value)} placeholder="Date" />
               <input className="field" value={draft.tags} onChange={(event) => updateDraft("tags", event.target.value)} placeholder="Tags, comma separated" />
-              <input
-                className="field md:col-span-3"
-                value={draft.image.startsWith("data:") ? selectedFileName : draft.image}
+              <textarea
+                className="field min-h-24 md:col-span-3"
+                value={draft.images.length ? selectedFileName : draft.image}
                 onChange={(event) => {
                   setSelectedFileName("");
-                  updateDraft("image", event.target.value);
+                  setDraft((current) => ({ ...current, image: event.target.value, images: [] }));
                 }}
-                placeholder="Image URL or uploaded photo"
+                placeholder="Image URLs separated by commas or new lines, or upload photos"
               />
+              {draft.images.length > 0 && (
+                <div className="flex gap-2 overflow-x-auto md:col-span-3">
+                  {draft.images.map((image) => (
+                    <img key={image} src={image} alt="Uploaded preview" className="h-20 w-28 rounded-2xl object-cover" />
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </form>
@@ -250,11 +262,23 @@ export default function Home() {
 
 function JournalDisplay({ post, index, user, editing, setEditing, onSave, onDelete, onBack, onNext, onPrevious, hasMultiple }) {
   const isEditing = editing?.id === post.id;
+  const [photoIndex, setPhotoIndex] = useState(0);
   const location = post.location || inferLocation(post.title, index);
   const date = post.date || fallbackDate(index);
   const tags = Array.isArray(post.tags) && post.tags.length ? post.tags : fallbackTags(index);
-  const image = isEditing ? editing.image : post.image || travelImages[index % travelImages.length];
+  const postImages = getPostImages(post, index);
+  const editingImages = isEditing ? normalizePostImages(parseImageList(editing.imagesText || editing.image), index) : postImages;
+  const displayImages = isEditing ? editingImages : postImages;
+  const image = displayImages[photoIndex % displayImages.length];
   const avatar = user.avatar || "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&q=80";
+
+  useEffect(() => {
+    setPhotoIndex(0);
+  }, [post.id]);
+
+  function goToPhoto(nextIndex) {
+    setPhotoIndex((nextIndex + displayImages.length) % displayImages.length);
+  }
 
   return (
     <div className="min-h-screen bg-background px-5 pb-24 pt-36 text-[#101727] md:px-10 md:pb-12">
@@ -262,27 +286,42 @@ function JournalDisplay({ post, index, user, editing, setEditing, onSave, onDele
         <section className="group relative min-h-[520px] overflow-hidden rounded-[32px] shadow-floating md:min-h-[760px]">
           <img src={image} alt={post.title} className="h-full w-full object-cover" />
 
-          {hasMultiple && (
+          {displayImages.length > 1 && (
             <>
               <button
                 className="absolute left-5 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-white/25 bg-white/30 text-white backdrop-blur-md transition hover:bg-white/50"
-                onClick={onPrevious}
-                aria-label="Previous journal post"
+                onClick={() => goToPhoto(photoIndex - 1)}
+                aria-label="Previous photo"
               >
                 <Icon name="chevron_left" />
               </button>
               <button
                 className="absolute right-5 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-white/25 bg-white/30 text-white backdrop-blur-md transition hover:bg-white/50"
-                onClick={onNext}
-                aria-label="Next journal post"
+                onClick={() => goToPhoto(photoIndex + 1)}
+                aria-label="Next photo"
               >
                 <Icon name="chevron_right" />
               </button>
             </>
           )}
 
+          {displayImages.length > 1 && (
+            <div className="absolute bottom-7 right-7 flex max-w-[46%] gap-2 overflow-x-auto rounded-full bg-white/80 p-2 shadow-sm backdrop-blur-md">
+              {displayImages.map((photo, photoIndexValue) => (
+                <button
+                  key={`${photo}-${photoIndexValue}`}
+                  className={`h-2 rounded-full transition ${photoIndexValue === photoIndex ? "w-8 bg-primary" : "w-2 bg-outline-variant"}`}
+                  onClick={() => goToPhoto(photoIndexValue)}
+                  aria-label={`Open photo ${photoIndexValue + 1}`}
+                />
+              ))}
+            </div>
+          )}
+
           <div className="absolute bottom-7 left-7 rounded-[24px] bg-white/85 p-5 shadow-sm backdrop-blur-md">
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">Personal Log</p>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">
+              Personal Log{displayImages.length > 1 ? ` - Photo ${photoIndex + 1} of ${displayImages.length}` : ""}
+            </p>
             <h2 className="mt-2 max-w-md font-serif text-3xl leading-tight">{post.title}</h2>
           </div>
         </section>
@@ -311,7 +350,12 @@ function JournalDisplay({ post, index, user, editing, setEditing, onSave, onDele
               <input className="field" value={editing.title} onChange={(event) => setEditing({ ...editing, title: event.target.value })} />
               <textarea className="field min-h-48" value={editing.body} onChange={(event) => setEditing({ ...editing, body: event.target.value })} />
               <input className="field" value={editing.tags} onChange={(event) => setEditing({ ...editing, tags: event.target.value })} />
-              <input className="field" value={editing.image} onChange={(event) => setEditing({ ...editing, image: event.target.value })} />
+              <textarea
+                className="field min-h-28"
+                value={editing.imagesText}
+                onChange={(event) => setEditing({ ...editing, imagesText: event.target.value })}
+                placeholder="Image URLs separated by commas or new lines"
+              />
             </section>
           ) : (
             <section className="flex-1">
@@ -366,6 +410,7 @@ function JournalDisplay({ post, index, user, editing, setEditing, onSave, onDele
                     location,
                     date,
                     image,
+                    imagesText: getPostImages(post, index).join("\n"),
                     tags: tags.join(", ")
                   })
                 }
@@ -378,6 +423,16 @@ function JournalDisplay({ post, index, user, editing, setEditing, onSave, onDele
               <Icon name="delete" size={18} />
               Delete
             </button>
+            {hasMultiple && !isEditing && (
+              <div className="ml-auto flex gap-2">
+                <button className="icon-btn" onClick={onPrevious} aria-label="Previous journal post">
+                  <Icon name="chevron_left" />
+                </button>
+                <button className="icon-btn" onClick={onNext} aria-label="Next journal post">
+                  <Icon name="chevron_right" />
+                </button>
+              </div>
+            )}
           </footer>
         </article>
       </main>
@@ -390,7 +445,7 @@ function LogCard({ post, index, editing, setEditing, onSave, onDelete, onOpen })
   const location = post.location || inferLocation(post.title, index);
   const date = post.date || fallbackDate(index);
   const tags = Array.isArray(post.tags) && post.tags.length ? post.tags : fallbackTags(index);
-  const image = post.image || travelImages[index % travelImages.length];
+  const image = getPostImages(post, index)[0];
 
   return (
     <article
@@ -424,6 +479,7 @@ function LogCard({ post, index, editing, setEditing, onSave, onDelete, onOpen })
                 location,
                 date,
                 image,
+                imagesText: getPostImages(post, index).join("\n"),
                 tags: tags.join(", ")
               });
             }}
@@ -445,7 +501,7 @@ function LogCard({ post, index, editing, setEditing, onSave, onDelete, onOpen })
       </div>
 
       <div className="relative min-h-[230px] md:min-h-full">
-        <img src={isEditing ? editing.image : image} alt={post.title} className="absolute inset-0 h-full w-full object-cover" />
+        <img src={isEditing ? normalizePostImages(parseImageList(editing.imagesText || editing.image), index)[0] : image} alt={post.title} className="absolute inset-0 h-full w-full object-cover" />
       </div>
 
       <div className="flex flex-col justify-center p-7 md:p-10">
@@ -458,7 +514,12 @@ function LogCard({ post, index, editing, setEditing, onSave, onDelete, onOpen })
             <input className="field" value={editing.title} onChange={(event) => setEditing({ ...editing, title: event.target.value })} />
             <textarea className="field min-h-28" value={editing.body} onChange={(event) => setEditing({ ...editing, body: event.target.value })} />
             <input className="field" value={editing.tags} onChange={(event) => setEditing({ ...editing, tags: event.target.value })} />
-            <input className="field" value={editing.image} onChange={(event) => setEditing({ ...editing, image: event.target.value })} />
+            <textarea
+              className="field min-h-24"
+              value={editing.imagesText}
+              onChange={(event) => setEditing({ ...editing, imagesText: event.target.value })}
+              placeholder="Image URLs separated by commas or new lines"
+            />
           </div>
         ) : (
           <>
@@ -488,6 +549,35 @@ function parseTags(value) {
     .split(",")
     .map((tag) => tag.trim())
     .filter(Boolean);
+}
+
+function parseImageList(value = "") {
+  const text = String(value).trim();
+  if (!text) return [];
+  const parts = text.includes("data:image") ? text.split(/\n+/) : text.split(/[\n,]+/);
+  const normalizedParts = text.includes("data:image")
+    ? parts
+    : text.replace(/(https?:\/\/)/g, "\n$1").split(/[\n,]+/);
+  return normalizedParts.map((image) => image.trim()).filter(Boolean);
+}
+
+function normalizePostImages(images, fallbackIndex) {
+  const uniqueImages = [];
+  images.forEach((image) => {
+    if (typeof image !== "string") return;
+    const value = image.trim();
+    if (value && !uniqueImages.includes(value)) {
+      uniqueImages.push(value);
+    }
+  });
+  return uniqueImages.length ? uniqueImages : [travelImages[Math.abs(fallbackIndex) % travelImages.length]];
+}
+
+function getPostImages(post, index) {
+  if (Array.isArray(post.images) && post.images.length) {
+    return normalizePostImages(post.images, index);
+  }
+  return normalizePostImages([post.image], index);
 }
 
 function readFileAsDataUrl(file) {
