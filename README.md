@@ -29,10 +29,11 @@ TravelHub is a fullstack travel social app built for the Advanced React REST API
 - Protected routes that redirect guests to `/login`.
 - User route guarding so one user cannot browse another user route directly.
 - Profile info drawer with user details and avatar.
-- PDF-visible app navigation: Info, Todos, Posts, Albums, Logout.
-- Posts page for the active user's own posts, with summary selection, full content, CRUD, and comments.
-- Comment ownership controls so users can edit/delete only comments attached to their user.
-- Personal journal-style home screen for the active user's own travel logs.
+- App navigation: Explore, Trips, Journal, Community, and Log out.
+- Explore feed that shows other travelers' posts one at a time.
+- Explore post photo carousel where arrows switch photos, not posts.
+- Likes, comments, reshares, and comment avatars.
+- Personal journal page for the active user's own travel logs.
 - Create posts with uploaded cover photos or image URLs.
 - Trip planner with trip carousel, packing list, and "Places to go".
 - Packing categories menu for labels like Tech, Documents, Clothing, Health, Money, and more.

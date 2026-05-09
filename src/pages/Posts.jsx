@@ -1,108 +1,118 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { useAuth } from "../context/AuthContext.jsx";
 import Icon from "../components/Icon.jsx";
 import { EmptyState, ErrorState, LoadingState } from "../components/Status.jsx";
-import { useAuth } from "../context/AuthContext.jsx";
-import { avatarImages, travelImages } from "../data/travelImages.js";
 import { api } from "../lib/api.js";
-
-const blankPost = { title: "", body: "" };
+import { avatarImages, travelImages } from "../data/travelImages.js";
 
 export default function Posts() {
   const { user } = useAuth();
   const { postId } = useParams();
   const navigate = useNavigate();
-  const [params, setParams] = useSearchParams();
   const [posts, setPosts] = useState([]);
-  const [comments, setComments] = useState([]);
-  const [draft, setDraft] = useState(blankPost);
-  const [editingPost, setEditingPost] = useState(null);
+  const [authors, setAuthors] = useState({});
+  const [commentsByPost, setCommentsByPost] = useState({});
+  const [commentCounts, setCommentCounts] = useState({});
+  const [liked, setLiked] = useState({});
+  const [reshared, setReshared] = useState({});
+  const [showComments, setShowComments] = useState(false);
   const [commentDraft, setCommentDraft] = useState("");
-  const [editingComment, setEditingComment] = useState(null);
+  const [photoIndex, setPhotoIndex] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [commentsLoading, setCommentsLoading] = useState(false);
   const [error, setError] = useState("");
-
-  const q = params.get("q") || "";
 
   useEffect(() => {
     setLoading(true);
-    api
-      .get(`/posts?userId=${user.id}`, { cache: false })
-      .then((data) => {
-        setPosts(data);
-        if (!postId && data[0]) navigate(`/users/${user.id}/posts/${data[0].id}`, { replace: true });
+    Promise.all([api.get("/posts", { cache: false }), api.get("/users", { cache: false }), api.get("/comments", { cache: false })])
+      .then(([postData, userData, commentData]) => {
+        const otherPosts = postData.filter((post) => Number(post.userId) !== Number(user.id));
+        setPosts(otherPosts);
+        setAuthors(Object.fromEntries(userData.map((author) => [author.id, author])));
+        const groupedComments = commentData.reduce((acc, comment) => {
+          acc[comment.postId] = [...(acc[comment.postId] || []), comment];
+          return acc;
+        }, {});
+        setCommentsByPost(groupedComments);
+        setCommentCounts(Object.fromEntries(Object.entries(groupedComments).map(([id, comments]) => [id, comments.length])));
+        if (!postId && otherPosts[0]) {
+          navigate(`/users/${user.id}/posts/${otherPosts[0].id}`, { replace: true });
+        }
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [navigate, postId, user.id]);
 
-  const selectedPost = useMemo(() => {
-    if (!posts.length) return null;
-    return posts.find((post) => Number(post.id) === Number(postId)) || posts[0];
+  const selectedIndex = useMemo(() => {
+    if (!posts.length) return -1;
+    const index = posts.findIndex((post) => Number(post.id) === Number(postId));
+    return index >= 0 ? index : 0;
   }, [postId, posts]);
 
+  const selectedPost = selectedIndex >= 0 ? posts[selectedIndex] : null;
+  const author = selectedPost ? authors[selectedPost.userId] : null;
+
   useEffect(() => {
-    if (!selectedPost) {
-      setComments([]);
-      return;
-    }
-    setCommentsLoading(true);
-    api
-      .get(`/comments?postId=${selectedPost.id}`, { cache: false })
-      .then(setComments)
-      .catch((err) => setError(err.message))
-      .finally(() => setCommentsLoading(false));
+    setPhotoIndex(0);
+    setShowComments(false);
+    setCommentDraft("");
   }, [selectedPost?.id]);
 
-  const visiblePosts = useMemo(() => {
-    return posts.filter((post) => !q || String(post.id) === q || post.title.toLowerCase().includes(q.toLowerCase()));
-  }, [posts, q]);
-
-  function selectPost(post) {
-    const suffix = params.toString() ? `?${params.toString()}` : "";
-    navigate(`/users/${user.id}/posts/${post.id}${suffix}`);
+  if (!loading && posts.length > 0 && postId && !posts.some((post) => Number(post.id) === Number(postId))) {
+    return <Navigate to={`/users/${user.id}/posts/${posts[0].id}`} replace />;
   }
 
-  async function addPost(event) {
-    event.preventDefault();
-    if (!draft.title.trim() || !draft.body.trim()) return;
-    const created = await api.post("/posts", {
-      userId: user.id,
-      title: draft.title.trim(),
-      body: draft.body.trim(),
-      image: travelImages[posts.length % travelImages.length],
-      location: user.address?.city || "Travel Log",
-      date: new Date().toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }),
-      tags: ["Travel"]
-    });
-    setPosts((current) => [created, ...current]);
-    setDraft(blankPost);
-    navigate(`/users/${user.id}/posts/${created.id}`);
+  function goToIndex(index) {
+    const post = posts[(index + posts.length) % posts.length];
+    navigate(`/users/${user.id}/posts/${post.id}`);
   }
 
-  async function savePost() {
-    if (!editingPost?.title.trim() || !editingPost?.body.trim()) return;
-    const updated = await api.patch(`/posts/${editingPost.id}`, {
-      title: editingPost.title.trim(),
-      body: editingPost.body.trim()
-    });
-    setPosts((current) => current.map((post) => (post.id === updated.id ? { ...post, ...updated } : post)));
-    setEditingPost(null);
+  if (loading) {
+    return (
+      <div className="mx-auto w-[min(1400px,calc(100%-40px))] pt-36">
+        <LoadingState label="Loading feed..." />
+      </div>
+    );
   }
 
-  async function deletePost(id) {
-    await api.delete(`/posts/${id}`);
-    const nextPosts = posts.filter((post) => post.id !== id);
-    setPosts(nextPosts);
-    if (Number(selectedPost?.id) === Number(id)) {
-      navigate(nextPosts[0] ? `/users/${user.id}/posts/${nextPosts[0].id}` : `/users/${user.id}/posts`);
-    }
+  if (error) {
+    return (
+      <div className="mx-auto w-[min(1400px,calc(100%-40px))] pt-36">
+        <ErrorState message={error} />
+      </div>
+    );
+  }
+
+  if (!selectedPost) {
+    return (
+      <div className="mx-auto w-[min(1400px,calc(100%-40px))] pt-36">
+        <EmptyState title="No feed posts yet" body="The feed shows posts from other travelers, not your own posts." />
+      </div>
+    );
+  }
+
+  const commentCount = commentCounts[selectedPost.id] || 0;
+  const activeLiked = Boolean(liked[selectedPost.id]);
+  const activeReshared = Boolean(reshared[selectedPost.id]);
+  const likeCount = activeLiked ? "1.3k" : "1.2k";
+  const reshareCount = activeReshared ? 19 : 18;
+  const comments = commentsByPost[selectedPost.id] || [];
+  const postPhotos = [
+    selectedPost.image || travelImages[selectedIndex % travelImages.length],
+    travelImages[(selectedIndex + 1) % travelImages.length],
+    travelImages[(selectedIndex + 4) % travelImages.length]
+  ];
+  const image = postPhotos[photoIndex];
+  const avatar = author?.avatar || avatarImages[selectedIndex % avatarImages.length];
+
+  function goToPhoto(index) {
+    setPhotoIndex((index + postPhotos.length) % postPhotos.length);
   }
 
   async function addComment(event) {
     event.preventDefault();
-    if (!commentDraft.trim() || !selectedPost) return;
+    if (!commentDraft.trim()) return;
+
     const created = await api.post("/comments", {
       postId: selectedPost.id,
       userId: user.id,
@@ -110,187 +120,191 @@ export default function Posts() {
       email: user.email,
       body: commentDraft.trim()
     });
-    setComments((current) => [...current, created]);
+
+    setCommentsByPost((current) => ({
+      ...current,
+      [selectedPost.id]: [...(current[selectedPost.id] || []), created]
+    }));
+    setCommentCounts((current) => ({
+      ...current,
+      [selectedPost.id]: (current[selectedPost.id] || 0) + 1
+    }));
     setCommentDraft("");
+    setShowComments(true);
   }
 
-  async function saveComment(comment) {
-    if (!editingComment?.body.trim()) return;
-    const updated = await api.patch(`/comments/${comment.id}`, { body: editingComment.body.trim() });
-    setComments((current) => current.map((item) => (item.id === updated.id ? updated : item)));
-    setEditingComment(null);
+  async function toggleReshare() {
+    setReshared((current) => ({ ...current, [selectedPost.id]: !current[selectedPost.id] }));
+    await navigator.clipboard?.writeText(window.location.href);
   }
 
-  async function deleteComment(id) {
-    await api.delete(`/comments/${id}`);
-    setComments((current) => current.filter((comment) => comment.id !== id));
+  function getCommentAuthor(comment) {
+    if (Number(comment.userId) === Number(user.id)) return user;
+    return authors[comment.userId];
   }
 
-  if (loading) {
-    return (
-      <div className="mx-auto w-[min(1400px,calc(100%-40px))] pt-36">
-        <LoadingState label="Loading posts..." />
-      </div>
-    );
+  function getCommentAvatar(comment, index) {
+    const commentAuthor = getCommentAuthor(comment);
+    const fallbackIndex = Number.isFinite(Number(comment.userId)) ? Number(comment.userId) - 1 : index;
+    return commentAuthor?.avatar || avatarImages[Math.abs(fallbackIndex) % avatarImages.length];
   }
 
   return (
-    <div className="min-h-screen bg-background px-5 pb-24 pt-36 text-[#101727] md:px-10 md:pb-14">
-      <main className="mx-auto grid w-full max-w-[1400px] gap-8 lg:grid-cols-[390px_1fr]">
-        <aside className="space-y-6">
-          <section className="card p-6">
-            <h1 className="font-serif text-5xl">Posts</h1>
-            <p className="mt-3 text-on-surface-variant">Your user-owned posts. Summary cards show only ID and title until selected.</p>
-            <label className="mt-5 block">
-              <span className="mb-2 block text-sm font-bold">Search by id or title</span>
-              <input className="field" value={q} onChange={(event) => setParams({ q: event.target.value })} placeholder="Search posts..." />
-            </label>
-          </section>
+    <div className="min-h-screen bg-background px-5 pb-24 pt-36 text-[#101727] md:px-10 md:pb-12">
+      <main className="mx-auto grid min-h-[760px] w-full max-w-[1400px] gap-8 md:grid-cols-[1.05fr_1fr]">
+        <section className="group relative min-h-[520px] overflow-hidden rounded-[32px] shadow-floating md:min-h-[760px]">
+          <img src={image} alt={selectedPost.title} className="h-full w-full object-cover" />
 
-          <form className="card p-6" onSubmit={addPost}>
-            <h2 className="font-serif text-3xl">Add Post</h2>
-            <div className="mt-4 space-y-3">
-              <input className="field" value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} placeholder="Title" />
-              <textarea className="field min-h-28" value={draft.body} onChange={(event) => setDraft({ ...draft, body: event.target.value })} placeholder="Content" />
-            </div>
-            <button className="btn-primary mt-4 w-full">
-              <Icon name="add" />
-              Add Post
-            </button>
-          </form>
-
-          <section className="card p-4">
-            {visiblePosts.length === 0 ? (
-              <EmptyState title="No posts found" body="Create a post or change your search." />
-            ) : (
-              <ul className="space-y-3">
-                {visiblePosts.map((post) => (
-                  <li key={post.id}>
-                    <button
-                      className={`w-full rounded-2xl p-4 text-left transition ${
-                        Number(selectedPost?.id) === Number(post.id) ? "bg-primary text-white" : "bg-surface-low hover:bg-surface-container"
-                      }`}
-                      onClick={() => selectPost(post)}
-                    >
-                      <span className="block text-xs font-bold opacity-70">Post #{post.id}</span>
-                      <span className="mt-1 block font-bold">{post.title}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-        </aside>
-
-        <section className="space-y-6">
-          {error && <ErrorState message={error} />}
-          {!selectedPost ? (
-            <EmptyState title="No posts yet" body="Use the form to add your first post." />
-          ) : (
+          {postPhotos.length > 1 && (
             <>
-              <article className="grid overflow-hidden rounded-[32px] bg-white shadow-spatial xl:grid-cols-[0.9fr_1fr]">
-                <img src={selectedPost.image || travelImages[0]} alt={selectedPost.title} className="h-80 w-full object-cover xl:h-full" />
-                <div className="p-8">
-                  <div className="mb-8 flex items-center gap-4">
-                    <img src={user.avatar || avatarImages[0]} alt={user.name} className="h-14 w-14 rounded-full object-cover" />
-                    <div>
-                      <p className="font-bold">{user.name}</p>
-                      <p className="text-sm text-on-surface-variant">@{user.username}</p>
-                    </div>
-                  </div>
-
-                  {editingPost ? (
-                    <div className="space-y-4">
-                      <input className="field" value={editingPost.title} onChange={(event) => setEditingPost({ ...editingPost, title: event.target.value })} />
-                      <textarea className="field min-h-40" value={editingPost.body} onChange={(event) => setEditingPost({ ...editingPost, body: event.target.value })} />
-                      <div className="flex gap-2">
-                        <button className="btn-primary" type="button" onClick={savePost}>
-                          Save
-                        </button>
-                        <button className="btn-secondary" type="button" onClick={() => setEditingPost(null)}>
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <h2 className="font-serif text-5xl leading-tight">{selectedPost.title}</h2>
-                      <p className="mt-6 text-lg leading-8 text-on-surface-variant">{selectedPost.body}</p>
-                      <div className="mt-8 flex flex-wrap gap-2 border-t border-surface-high pt-6">
-                        <button className="btn-secondary" onClick={() => setEditingPost(selectedPost)}>
-                          <Icon name="edit" />
-                          Edit Content
-                        </button>
-                        <button className="btn-secondary hover:!text-error" onClick={() => deletePost(selectedPost.id)}>
-                          <Icon name="delete" />
-                          Delete
-                        </button>
-                        <Link className="btn-secondary" to={`/users/${user.id}/posts/${selectedPost.id}`}>
-                          <Icon name="link" />
-                          Informative URL
-                        </Link>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </article>
-
-              <section className="card p-6 md:p-8">
-                <h2 className="font-serif text-4xl">Comments</h2>
-                <form className="mt-5 flex flex-col gap-3 md:flex-row" onSubmit={addComment}>
-                  <input className="field" value={commentDraft} onChange={(event) => setCommentDraft(event.target.value)} placeholder="Add your comment..." />
-                  <button className="btn-primary">
-                    <Icon name="chat_bubble" />
-                    Add Comment
-                  </button>
-                </form>
-
-                {commentsLoading ? (
-                  <LoadingState label="Loading comments..." />
-                ) : comments.length === 0 ? (
-                  <EmptyState title="No comments yet" body="Add the first comment for this post." />
-                ) : (
-                  <ul className="mt-6 space-y-4">
-                    {comments.map((comment) => {
-                      const isOwner = Number(comment.userId) === Number(user.id);
-                      return (
-                        <li className="rounded-[24px] bg-surface-low p-5" key={comment.id}>
-                          <div className="flex items-start justify-between gap-4">
-                            <div>
-                              <p className="font-bold">{comment.name}</p>
-                              <p className="text-sm text-on-surface-variant">{comment.email}</p>
-                            </div>
-                            {isOwner && (
-                              <div className="flex gap-2">
-                                <button className="icon-btn" onClick={() => setEditingComment({ id: comment.id, body: comment.body })} aria-label="Edit comment">
-                                  <Icon name="edit" />
-                                </button>
-                                <button className="icon-btn hover:!text-error" onClick={() => deleteComment(comment.id)} aria-label="Delete comment">
-                                  <Icon name="delete" />
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                          {editingComment?.id === comment.id ? (
-                            <div className="mt-4 space-y-3">
-                              <textarea className="field min-h-24" value={editingComment.body} onChange={(event) => setEditingComment({ ...editingComment, body: event.target.value })} />
-                              <button className="btn-primary" onClick={() => saveComment(comment)}>
-                                Save Comment
-                              </button>
-                            </div>
-                          ) : (
-                            <p className="mt-4 leading-7 text-on-surface-variant">{comment.body}</p>
-                          )}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </section>
+              <button
+                className="absolute left-5 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-white/25 bg-white/30 text-white opacity-100 backdrop-blur-md transition hover:bg-white/50 md:opacity-0 md:group-hover:opacity-100"
+                onClick={() => goToPhoto(photoIndex - 1)}
+                aria-label="Previous photo"
+              >
+                <Icon name="chevron_left" />
+              </button>
+              <button
+                className="absolute right-5 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-white/25 bg-white/30 text-white opacity-100 backdrop-blur-md transition hover:bg-white/50 md:opacity-0 md:group-hover:opacity-100"
+                onClick={() => goToPhoto(photoIndex + 1)}
+                aria-label="Next photo"
+              >
+                <Icon name="chevron_right" />
+              </button>
             </>
           )}
+
+          <div className="absolute bottom-7 left-1/2 flex -translate-x-1/2 gap-2">
+            {postPhotos.map((photo, index) => (
+              <button
+                key={`${selectedPost.id}-${photo}-${index}`}
+                className={`h-2 rounded-full transition ${index === photoIndex ? "w-7 bg-white" : "w-2 bg-white/55"}`}
+                onClick={() => goToPhoto(index)}
+                aria-label={`Open photo ${index + 1}`}
+              />
+            ))}
+          </div>
         </section>
+
+        <article className="flex min-h-[520px] flex-col rounded-[32px] bg-white p-8 shadow-spatial md:min-h-[760px] md:p-10">
+          <header className="mb-12 flex items-center gap-4">
+            <img src={avatar} alt={author?.name || "Travel author"} className="h-14 w-14 rounded-full border border-outline-variant object-cover" />
+            <div>
+              <h2 className="text-base font-bold">{author?.name || "Travel Author"}</h2>
+              <p className="text-[15px] text-on-surface-variant">{author?.company?.name || "Travel Photojournalist"}</p>
+            </div>
+          </header>
+
+          <section className="flex-1">
+            <p className="mb-4 text-sm font-bold uppercase tracking-[0.18em] text-primary">Explore</p>
+            <h1 className="max-w-[640px] font-serif text-5xl font-medium leading-[1.12] tracking-[-0.01em] md:text-6xl">{selectedPost.title}</h1>
+            <div className="mt-8 max-w-[680px] space-y-5 text-[20px] leading-[1.65] text-[#263149]">
+              {selectedPost.body
+                .split(". ")
+                .filter(Boolean)
+                .reduce((paragraphs, sentence, index) => {
+                  const target = Math.floor(index / 2);
+                  paragraphs[target] = `${paragraphs[target] || ""}${paragraphs[target] ? ". " : ""}${sentence}`;
+                  return paragraphs;
+                }, [])
+                .map((paragraph, index) => (
+                  <p key={index}>{paragraph.endsWith(".") ? paragraph : `${paragraph}.`}</p>
+                ))}
+            </div>
+          </section>
+
+          <footer className="mt-10 flex flex-wrap items-center gap-4 border-t border-surface-high pt-8">
+            <button
+              className={`inline-flex items-center gap-3 rounded-full px-5 py-3 text-sm font-bold transition ${
+                activeLiked ? "bg-primary text-white" : "bg-surface-low text-on-surface hover:bg-surface-container"
+              }`}
+              onClick={() => setLiked((current) => ({ ...current, [selectedPost.id]: !current[selectedPost.id] }))}
+            >
+              <Icon name="heart" size={25} strokeWidth={2.1} />
+              {likeCount}
+            </button>
+            <button
+              className={`inline-flex items-center gap-3 rounded-full px-5 py-3 text-sm font-bold transition ${
+                showComments ? "bg-primary text-white" : "bg-surface-low text-on-surface hover:bg-surface-container"
+              }`}
+              onClick={() => setShowComments((current) => !current)}
+            >
+              <Icon name="comment" size={25} strokeWidth={2.1} />
+              {commentCount}
+            </button>
+            <button
+              className={`inline-flex items-center gap-3 rounded-full px-5 py-3 text-sm font-bold transition md:ml-2 ${
+                activeReshared ? "bg-primary text-white" : "bg-surface-low text-on-surface hover:bg-surface-container"
+              }`}
+              onClick={toggleReshare}
+            >
+              <Icon name="share" size={25} strokeWidth={2.1} />
+              {reshareCount}
+            </button>
+          </footer>
+
+          {showComments && (
+            <section className="mt-6 rounded-[28px] bg-surface-low p-5">
+              <div className="mb-5 flex items-center justify-between gap-4">
+                <h2 className="font-serif text-3xl">Comments</h2>
+                <span className="rounded-full bg-white px-3 py-1 text-sm font-bold text-on-surface-variant">{commentCount}</span>
+              </div>
+
+              <form className="mb-5 flex flex-col gap-3 md:flex-row" onSubmit={addComment}>
+                <input
+                  className="field"
+                  value={commentDraft}
+                  onChange={(event) => setCommentDraft(event.target.value)}
+                  placeholder="Write a comment..."
+                />
+                <button className="btn-primary whitespace-nowrap">Post</button>
+              </form>
+
+              {comments.length === 0 ? (
+                <p className="rounded-2xl bg-white p-4 text-sm font-semibold text-on-surface-variant">No comments yet. Start the conversation.</p>
+              ) : (
+                <ul className="max-h-60 space-y-3 overflow-y-auto pr-1">
+                  {comments.map((comment, index) => {
+                    const commentAuthor = getCommentAuthor(comment);
+
+                    return (
+                      <li key={comment.id} className="rounded-2xl bg-white p-4">
+                        <div className="mb-3 flex items-start gap-3">
+                          <img
+                            src={getCommentAvatar(comment, index)}
+                            alt={commentAuthor?.name || comment.email || "Comment author"}
+                            className="h-10 w-10 shrink-0 rounded-full border border-outline-variant object-cover"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center justify-between gap-3">
+                              <div className="min-w-0">
+                                <p className="truncate text-sm font-bold">{commentAuthor?.name || comment.email}</p>
+                                <p className="truncate text-xs font-semibold text-on-surface-variant">{comment.email}</p>
+                              </div>
+                              {Number(comment.userId) === Number(user.id) && (
+                                <span className="shrink-0 rounded-full bg-primary-soft px-2 py-1 text-xs font-bold text-primary">You</span>
+                              )}
+                            </div>
+                            <p className="mt-2 text-sm leading-6 text-on-surface-variant">{comment.body}</p>
+                          </div>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </section>
+          )}
+        </article>
       </main>
+
+      {posts.length > 1 && (
+        <div className="mt-10 hidden justify-center md:flex">
+          <button className="text-outline-variant transition hover:text-primary" onClick={() => goToIndex(selectedIndex + 1)} aria-label="Next feed item">
+            <Icon name="chevron_right" className="rotate-90" size={34} />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
