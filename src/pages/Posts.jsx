@@ -182,17 +182,17 @@ export default function Posts() {
             <div
               key={post.id}
               className={`overflow-hidden rounded-[32px] bg-white shadow-spatial flex flex-col ${
-                commentsOpen ? "h-auto" : "h-[24rem]"
+                commentsOpen ? "h-auto" : "h-[28rem]"
               }`}
             >
               {/* Top: Content Grid (2 columns when not expanded) */}
               <div
-                className={`grid min-h-0 gap-6 overflow-hidden md:h-[19rem] md:grid-cols-2 ${
+                className={`grid min-h-0 gap-6 overflow-hidden md:h-[23rem] md:grid-cols-2 ${
                   commentsOpen ? "md:flex-none" : "flex-1"
                 }`}
               >
                 {/* Left: Content */}
-                <div className="flex min-h-0 flex-col overflow-hidden">
+                <div className="order-2 flex min-h-0 flex-col overflow-hidden md:order-1">
                   {/* Author & Content */}
                   <div className="flex flex-col flex-shrink-0 overflow-y-auto p-8 pb-6">
                     {/* Author Header */}
@@ -214,7 +214,7 @@ export default function Posts() {
                 </div>
 
                 {/* Right: Image */}
-                <div className="hidden h-full min-h-0 overflow-hidden bg-surface-low md:flex">
+                <div className="order-1 h-52 w-full overflow-hidden bg-surface-low md:order-2 md:h-full md:min-h-0">
                   {image ? (
                     <img
                       key={image}
