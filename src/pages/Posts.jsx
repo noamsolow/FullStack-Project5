@@ -16,6 +16,7 @@ export default function Posts() {
   const [reshared, setReshared] = useState({});
   const [showComments, setShowComments] = useState({});
   const [commentDraft, setCommentDraft] = useState({});
+  const [expandedPostId, setExpandedPostId] = useState(null);
   const [imageRetryCount, setImageRetryCount] = useState({});
   const [primaryImageFailed, setPrimaryImageFailed] = useState({});
   const [fallbackImageIndex, setFallbackImageIndex] = useState({});
@@ -139,6 +140,12 @@ export default function Posts() {
     retryPostImage(postId);
   }
 
+  function handlePostPress(postId) {
+    if (typeof window === "undefined") return;
+    if (!window.matchMedia("(max-width: 767px)").matches) return;
+    setExpandedPostId((current) => (current === postId ? null : postId));
+  }
+
   if (loading) {
     return (
       <div className="mx-auto w-[min(1400px,calc(100%-40px))] pt-36">
@@ -176,14 +183,16 @@ export default function Posts() {
           const reshareCount = activeReshared ? 19 : 18;
           const comments = commentsByPost[post.id] || [];
           const commentsOpen = Boolean(showComments[post.id]);
+          const isExpandedOnMobile = expandedPostId === post.id;
           const image = getResolvedPostImage(post, index);
 
           return (
             <div
               key={post.id}
               className={`overflow-hidden rounded-[32px] bg-white shadow-spatial flex flex-col ${
-                commentsOpen ? "h-auto" : "h-[28rem]"
+                commentsOpen || isExpandedOnMobile ? "h-auto" : "h-[28rem]"
               }`}
+              onClick={() => handlePostPress(post.id)}
             >
               {/* Top: Content Grid (2 columns when not expanded) */}
               <div
@@ -207,8 +216,8 @@ export default function Posts() {
                     {/* Post Content */}
                     <section className="mb-4 flex-shrink-0">
                       <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-primary">Explore</p>
-                      <h2 className="mb-2 font-serif text-lg font-medium leading-tight line-clamp-2">{post.title}</h2>
-                      <p className="text-xs leading-relaxed text-[#263149] line-clamp-3">{post.body}</p>
+                      <h2 className={`mb-2 font-serif text-lg font-medium leading-tight ${isExpandedOnMobile ? "line-clamp-none" : "line-clamp-2"}`}>{post.title}</h2>
+                      <p className={`text-xs leading-relaxed text-[#263149] ${isExpandedOnMobile ? "line-clamp-none" : "line-clamp-3"}`}>{post.body}</p>
                     </section>
                   </div>
                 </div>
@@ -233,7 +242,7 @@ export default function Posts() {
               </div>
 
               {/* Buttons Row - Full width */}
-              <div className="border-t border-surface-high px-8 py-3 flex-shrink-0 flex items-center justify-between">
+              <div className="border-t border-surface-high px-8 py-3 flex-shrink-0 flex items-center justify-between" onClick={(event) => event.stopPropagation()}>
                 <div className="flex flex-wrap items-center gap-2">
                   <button
                     className={`inline-flex h-10 items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold transition ${
@@ -268,7 +277,7 @@ export default function Posts() {
 
               {/* Comments Section - Full Width When Expanded */}
               {commentsOpen && (
-                <section className="border-t border-surface-high flex flex-col gap-2 bg-surface-low p-4">
+                <section className="border-t border-surface-high flex flex-col gap-2 bg-surface-low p-4" onClick={(event) => event.stopPropagation()}>
                   <div className="mb-2 flex items-center justify-between gap-2 flex-shrink-0">
                     <h3 className="font-serif text-xs font-medium">Comments ({commentCount})</h3>
                   </div>
