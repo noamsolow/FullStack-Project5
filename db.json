@@ -99,6 +99,86 @@
       },
       "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80",
       "id": 5
+    },
+    {
+      "id": 6,
+      "name": "Sofia Martinez",
+      "username": "sofiamartinez",
+      "email": "sofia@example.com",
+      "phone": "34-912-345-678",
+      "website": "sofiatravels.com",
+      "avatar": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=300&q=80",
+      "address": {
+        "street": "Calle Gran Via",
+        "suite": "50",
+        "city": "Madrid",
+        "zipcode": "28013"
+      },
+      "company": {
+        "name": "Wanderlust Photography",
+        "catchPhrase": "Capturing light and life across continents.",
+        "bs": "travel photography"
+      }
+    },
+    {
+      "id": 7,
+      "name": "Marcus Chen",
+      "username": "marcus.chen",
+      "email": "marcus@example.com",
+      "phone": "86-10-123-4567",
+      "website": "marcustravel.cn",
+      "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80",
+      "address": {
+        "street": "Changan Avenue",
+        "suite": "100",
+        "city": "Beijing",
+        "zipcode": "100000"
+      },
+      "company": {
+        "name": "Global Explorer",
+        "catchPhrase": "Finding beauty in every corner of the world.",
+        "bs": "adventure travel"
+      }
+    },
+    {
+      "id": 8,
+      "name": "Amara Okonkwo",
+      "username": "amaraokonkwo",
+      "email": "amara@example.com",
+      "phone": "234-1-123-4567",
+      "website": "amaratravel.ng",
+      "avatar": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&q=80",
+      "address": {
+        "street": "Lagos Island Way",
+        "suite": "10",
+        "city": "Lagos",
+        "zipcode": "101001"
+      },
+      "company": {
+        "name": "African Routes",
+        "catchPhrase": "Documenting stories from the heart of Africa.",
+        "bs": "cultural travel"
+      }
+    },
+    {
+      "id": 9,
+      "name": "Lucas Silva",
+      "username": "lucas.silva",
+      "email": "lucas@example.com",
+      "phone": "55-21-2567-8900",
+      "website": "lucasbrazil.com",
+      "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80",
+      "address": {
+        "street": "Avenida Paulista",
+        "suite": "2000",
+        "city": "Sao Paulo",
+        "zipcode": "01311-100"
+      },
+      "company": {
+        "name": "South American Tales",
+        "catchPhrase": "Living and traveling through the rhythm of Latin America.",
+        "bs": "lifestyle travel"
+      }
     }
   ],
   "trips": [
@@ -377,6 +457,76 @@
       "title": "Tiles and Hills in Lisbon",
       "body": "Every street climbs toward another view. Blue tiles, yellow trams, and late afternoon light turn the city into a layered map.",
       "image": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80"
+    },
+    {
+      "id": 6,
+      "userId": 6,
+      "title": "Flamenco and Passion in Barcelona",
+      "body": "The Gothic Quarter whispers secrets through narrow medieval streets. Found a hidden tapas bar tucked between centuries-old walls where locals outnumber tourists and the wine flows like conversation.",
+      "image": "https://images.unsplash.com/photo-1498680910766-56d054ce1a43?auto=format&fit=crop&w=1200&q=80"
+    },
+    {
+      "id": 7,
+      "userId": 7,
+      "title": "The Great Wall at Sunrise",
+      "body": "Standing on ancient stone as the sun paints the sky gold. The scale is incomprehensible—mountains folding into distance, a dragon of wall marking the horizon for centuries.",
+      "image": "https://images.unsplash.com/photo-1508804185872-d7badad00f7d?auto=format&fit=crop&w=1200&q=80"
+    },
+    {
+      "id": 8,
+      "userId": 8,
+      "title": "Savanna Sunsets and Sacred Rhythms",
+      "body": "The Serengeti teaches patience. Watching the migration unfold, understanding the pull of ancient paths in the grass. Every heartbeat here syncs to the drumming of nature.",
+      "image": "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1200&q=80"
+    },
+    {
+      "id": 9,
+      "userId": 9,
+      "title": "Rio: Where Mountains Meet the Sea",
+      "body": "The Corcovado rises above it all, watching over a city that never stops moving. Cable car rides through Atlantic rainforest, beaches that stretch like promises, a energy that vibrates through your bones.",
+      "image": "https://images.unsplash.com/photo-1543269865-cbdf26effbad?auto=format&fit=crop&w=1200&q=80"
+    },
+    {
+      "id": 10,
+      "userId": 2,
+      "title": "Midnight Sun Over Norwegian Fjords",
+      "body": "At midnight, the sun still hangs in the sky. These vertical cliffs carved by ancient glaciers drop directly into water the color of dreams. The silence here is alive.",
+      "image": "https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=1200&q=80"
+    },
+    {
+      "id": 11,
+      "userId": 4,
+      "title": "Spice Markets and Ancient Walls",
+      "body": "The souks of Marrakech assault every sense in the most beautiful way. Vendors call out their wares, the air thick with cumin and saffron. Getting lost here is the whole point.",
+      "image": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1200&q=80"
+    },
+    {
+      "id": 12,
+      "userId": 3,
+      "title": "Temple Gardens and Sacred Silence",
+      "body": "The gardens of Kyoto's temples hold centuries of intention. Every rock placed, every path designed for contemplation. Time moves differently here.",
+      "image": "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1200&q=80"
+    },
+    {
+      "id": 13,
+      "userId": 5,
+      "title": "Desert Dreams and Star-Filled Nights",
+      "body": "Out here in Petra, you understand what ancient builders understood—how to make humans feel small in the most profound way. Every canyon holds echoes of thousands of years.",
+      "image": "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1200&q=80"
+    },
+    {
+      "id": 14,
+      "userId": 6,
+      "title": "Gondolas and Gelato in Venice",
+      "body": "Venice moves slower than the world. The water reflects everything beautifully distorted. Every corner reveals another bridge, another secret, another reason to get lost.",
+      "image": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1200&q=80"
+    },
+    {
+      "id": 15,
+      "userId": 7,
+      "title": "Rice Terraces and Mountain Mist",
+      "body": "The Banaue rice terraces are proof that humans can work with nature rather than against it. Carved into mountains over 2,000 years ago, still feeding people, still beautiful.",
+      "image": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1200&q=80"
     }
   ],
   "comments": [
@@ -459,6 +609,198 @@
       "email": "leanne@example.com",
       "body": "lisbon is pretty!",
       "id": 10
+    },
+    {
+      "postId": 1,
+      "userId": 3,
+      "name": "Clementine comment",
+      "email": "clementine@example.com",
+      "body": "Those mountains are absolutely stunning 🏔️",
+      "id": 11
+    },
+    {
+      "postId": 1,
+      "userId": 6,
+      "name": "Sofia comment",
+      "email": "sofia@example.com",
+      "body": "Which cable car did you take? Planning to visit soon",
+      "id": 12
+    },
+    {
+      "postId": 2,
+      "userId": 5,
+      "name": "noam comment",
+      "email": "noamsolow@gmail.com",
+      "body": "Absolutely love this vibe! The nightlife was incredible",
+      "id": 13
+    },
+    {
+      "postId": 2,
+      "userId": 2,
+      "name": "Ervin comment",
+      "email": "ervin@example.com",
+      "body": "So glad you captured the energy!",
+      "id": 14
+    },
+    {
+      "postId": 3,
+      "userId": 7,
+      "name": "Marcus comment",
+      "email": "marcus@example.com",
+      "body": "The Aegean sunsets are unmatched 🌅",
+      "id": 15
+    },
+    {
+      "postId": 3,
+      "userId": 3,
+      "name": "Clementine comment",
+      "email": "clementine@example.com",
+      "body": "We should coordinate a trip here!",
+      "id": 16
+    },
+    {
+      "postId": 4,
+      "userId": 8,
+      "name": "Amara comment",
+      "email": "amara@example.com",
+      "body": "Iceland has always been on my bucket list",
+      "id": 17
+    },
+    {
+      "postId": 5,
+      "userId": 6,
+      "name": "Sofia comment",
+      "email": "sofia@example.com",
+      "body": "The Tram 28 is iconic! Did you ride it?",
+      "id": 18
+    },
+    {
+      "postId": 6,
+      "userId": 1,
+      "name": "Leanne comment",
+      "email": "leanne@example.com",
+      "body": "Barcelona is magical! Those Gothic quarters 🏛️",
+      "id": 19
+    },
+    {
+      "postId": 6,
+      "userId": 9,
+      "name": "Lucas comment",
+      "email": "lucas@example.com",
+      "body": "Did you catch a flamenco show?",
+      "id": 20
+    },
+    {
+      "postId": 6,
+      "userId": 6,
+      "name": "Sofia comment",
+      "email": "sofia@example.com",
+      "body": "Yes! At Tablao Flamenco Cordobés. Amazing experience!",
+      "id": 21
+    },
+    {
+      "postId": 7,
+      "userId": 2,
+      "name": "Ervin comment",
+      "email": "ervin@example.com",
+      "body": "The Great Wall truly gives you perspective 🧱",
+      "id": 22
+    },
+    {
+      "postId": 7,
+      "userId": 3,
+      "name": "Clementine comment",
+      "email": "clementine@example.com",
+      "body": "How long did it take to hike your section?",
+      "id": 23
+    },
+    {
+      "postId": 8,
+      "userId": 1,
+      "name": "Leanne comment",
+      "email": "leanne@example.com",
+      "body": "The wildlife photography here must be incredible",
+      "id": 24
+    },
+    {
+      "postId": 8,
+      "userId": 8,
+      "name": "Amara comment",
+      "email": "amara@example.com",
+      "body": "We saw the great migration! Was absolutely breathtaking 🦁",
+      "id": 25
+    },
+    {
+      "postId": 8,
+      "userId": 7,
+      "name": "Marcus comment",
+      "email": "marcus@example.com",
+      "body": "One of my bucket list experiences!",
+      "id": 26
+    },
+    {
+      "postId": 9,
+      "userId": 4,
+      "name": "Mason comment",
+      "email": "Mason.tester@test.com",
+      "body": "Rio is electric! The energy is unmatchable 🌴",
+      "id": 27
+    },
+    {
+      "postId": 9,
+      "userId": 6,
+      "name": "Sofia comment",
+      "email": "sofia@example.com",
+      "body": "Visited Corcovado twice - never gets old",
+      "id": 28
+    },
+    {
+      "postId": 9,
+      "userId": 9,
+      "name": "Lucas comment",
+      "email": "lucas@example.com",
+      "body": "Rio will always be home 💛💙",
+      "id": 29
+    },
+    {
+      "postId": 10,
+      "userId": 3,
+      "name": "Clementine comment",
+      "email": "clementine@example.com",
+      "body": "The midnight sun phenomenon is something else entirely",
+      "id": 30
+    },
+    {
+      "postId": 10,
+      "userId": 2,
+      "name": "Ervin comment",
+      "email": "ervin@example.com",
+      "body": "Nature's most beautiful trick 🌞",
+      "id": 31
+    },
+    {
+      "postId": 11,
+      "userId": 1,
+      "name": "Leanne comment",
+      "email": "leanne@example.com",
+      "body": "The souks smell divine! Spices everywhere 🫗",
+      "id": 32
+    },
+    {
+      "postId": 12,
+      "userId": 6,
+      "name": "Sofia comment",
+      "email": "sofia@example.com",
+      "body": "Kyoto temples brought me so much peace",
+      "id": 33
+    },
+    {
+      "postId": 13,
+      "userId": 2,
+      "name": "Ervin comment",
+      "email": "ervin@example.com",
+      "body": "Petra at sunset was life-changing 🏜️",
+      "id": 34
     }
   ],
   "albums": [
@@ -491,6 +833,12 @@
       "userId": 3,
       "title": "Lisbon Streets",
       "cover": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80"
+    },
+    {
+      "userId": 4,
+      "title": "ssss",
+      "cover": "https://images.unsplash.com/photo-1528164344705-47542687000d?auto=format&fit=crop&w=1200&q=80",
+      "id": 6
     }
   ],
   "photos": [

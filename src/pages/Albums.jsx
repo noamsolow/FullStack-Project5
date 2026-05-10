@@ -14,6 +14,7 @@ export default function Albums() {
   const [counts, setCounts] = useState({});
   const [previewAlbum, setPreviewAlbum] = useState(null);
   const [title, setTitle] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const q = params.get("q") || "";
@@ -41,10 +42,25 @@ export default function Albums() {
 
   async function addAlbum(event) {
     event.preventDefault();
-    if (!title.trim()) return;
-    const created = await api.post("/albums", { userId: user.id, title: title.trim(), cover: travelImages[albums.length % travelImages.length] });
-    setAlbums((current) => [...current, created]);
-    setTitle("");
+    const normalizedTitle = title.trim();
+    if (!normalizedTitle || submitting) return;
+
+    setSubmitting(true);
+    setError("");
+    try {
+      const created = await api.post("/albums", {
+        userId: user.id,
+        title: normalizedTitle,
+        cover: travelImages[albums.length % travelImages.length]
+      });
+      setAlbums((current) => [...current, created]);
+      setTitle("");
+      setParams({});
+    } catch (err) {
+      setError(err.message || "Failed to add album.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -56,9 +72,9 @@ export default function Albums() {
         </div>
         <form className="flex flex-col gap-3 md:w-[520px] md:flex-row" onSubmit={addAlbum}>
           <input className="field" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Create new album..." />
-          <button className="btn-primary whitespace-nowrap">
+          <button className="btn-primary whitespace-nowrap" disabled={submitting}>
             <Icon name="add" />
-            Create New Album
+            {submitting ? "Creating..." : "Create New Album"}
           </button>
         </form>
       </header>

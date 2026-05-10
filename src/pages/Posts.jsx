@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
-import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
 import Icon from "../components/Icon.jsx";
 import { EmptyState, ErrorState, LoadingState } from "../components/Status.jsx";
@@ -7,18 +6,20 @@ import { api } from "../lib/api.js";
 import { avatarImages, travelImages } from "../data/travelImages.js";
 
 export default function Posts() {
+  const MAX_IMAGE_RETRIES = 3;
   const { user } = useAuth();
-  const { postId } = useParams();
-  const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
   const [authors, setAuthors] = useState({});
   const [commentsByPost, setCommentsByPost] = useState({});
   const [commentCounts, setCommentCounts] = useState({});
   const [liked, setLiked] = useState({});
   const [reshared, setReshared] = useState({});
-  const [showComments, setShowComments] = useState(false);
-  const [commentDraft, setCommentDraft] = useState("");
-  const [photoIndex, setPhotoIndex] = useState(0);
+  const [showComments, setShowComments] = useState({});
+  const [commentDraft, setCommentDraft] = useState({});
+  const [imageRetryCount, setImageRetryCount] = useState({});
+  const [primaryImageFailed, setPrimaryImageFailed] = useState({});
+  const [fallbackImageIndex, setFallbackImageIndex] = useState({});
+  const [hideImageAfterFailures, setHideImageAfterFailures] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -35,36 +36,107 @@ export default function Posts() {
         }, {});
         setCommentsByPost(groupedComments);
         setCommentCounts(Object.fromEntries(Object.entries(groupedComments).map(([id, comments]) => [id, comments.length])));
-        if (!postId && otherPosts[0]) {
-          navigate(`/users/${user.id}/posts/${otherPosts[0].id}`, { replace: true });
-        }
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [navigate, postId, user.id]);
+  }, [user.id]);
 
-  const selectedIndex = useMemo(() => {
-    if (!posts.length) return -1;
-    const index = posts.findIndex((post) => Number(post.id) === Number(postId));
-    return index >= 0 ? index : 0;
-  }, [postId, posts]);
+  async function addComment(event, postId) {
+    event.preventDefault();
+    if (!commentDraft[postId]?.trim()) return;
 
-  const selectedPost = selectedIndex >= 0 ? posts[selectedIndex] : null;
-  const author = selectedPost ? authors[selectedPost.userId] : null;
+    const created = await api.post("/comments", {
+      postId,
+      userId: user.id,
+      name: `${user.name} comment`,
+      email: user.email,
+      body: commentDraft[postId].trim()
+    });
 
-  useEffect(() => {
-    setPhotoIndex(0);
-    setShowComments(false);
-    setCommentDraft("");
-  }, [selectedPost?.id]);
-
-  if (!loading && posts.length > 0 && postId && !posts.some((post) => Number(post.id) === Number(postId))) {
-    return <Navigate to={`/users/${user.id}/posts/${posts[0].id}`} replace />;
+    setCommentsByPost((current) => ({
+      ...current,
+      [postId]: [...(current[postId] || []), created]
+    }));
+    setCommentCounts((current) => ({
+      ...current,
+      [postId]: (current[postId] || 0) + 1
+    }));
+    setCommentDraft((current) => ({ ...current, [postId]: "" }));
+    setShowComments((current) => ({ ...current, [postId]: true }));
   }
 
-  function goToIndex(index) {
-    const post = posts[(index + posts.length) % posts.length];
-    navigate(`/users/${user.id}/posts/${post.id}`);
+  async function toggleReshare(postId) {
+    setReshared((current) => ({ ...current, [postId]: !current[postId] }));
+    await navigator.clipboard?.copyText(window.location.href);
+  }
+
+  function getCommentAuthor(comment) {
+    if (Number(comment.userId) === Number(user.id)) return user;
+    return authors[comment.userId];
+  }
+
+  function getCommentAvatar(comment, index) {
+    const commentAuthor = getCommentAuthor(comment);
+    const fallbackIndex = Number.isFinite(Number(comment.userId)) ? Number(comment.userId) - 1 : index;
+    return commentAuthor?.avatar || avatarImages[Math.abs(fallbackIndex) % avatarImages.length];
+  }
+
+  function getPostImage(post, index) {
+    if (Array.isArray(post.images) && post.images.length) {
+      return post.images[0];
+    }
+    return post.image || travelImages[Math.abs(index) % travelImages.length];
+  }
+
+  function getImageSrcWithRetry(postId, baseSrc) {
+    const retryCount = imageRetryCount[postId] || 0;
+    if (!retryCount) return baseSrc;
+
+    const separator = baseSrc.includes("?") ? "&" : "?";
+    return `${baseSrc}${separator}retry=${retryCount}`;
+  }
+
+  function getFallbackImage(index, fallbackIndex) {
+    const offset = Number.isFinite(fallbackIndex) ? fallbackIndex : 0;
+    return travelImages[Math.abs(index + offset) % travelImages.length];
+  }
+
+  function getResolvedPostImage(post, index) {
+    if (hideImageAfterFailures[post.id]) return null;
+
+    const primaryImage = getPostImage(post, index);
+    if (primaryImageFailed[post.id]) {
+      return getFallbackImage(index, fallbackImageIndex[post.id] || 0);
+    }
+
+    return getImageSrcWithRetry(post.id, primaryImage);
+  }
+
+  function retryPostImage(postId) {
+    setImageRetryCount((current) => {
+      const currentRetries = current[postId] || 0;
+      if (currentRetries >= MAX_IMAGE_RETRIES) {
+        setPrimaryImageFailed((failedCurrent) => ({ ...failedCurrent, [postId]: true }));
+        return current;
+      }
+      return { ...current, [postId]: currentRetries + 1 };
+    });
+  }
+
+  function handleImageError(postId) {
+    if (primaryImageFailed[postId]) {
+      setFallbackImageIndex((current) => {
+        const nextIndex = (current[postId] || 0) + 1;
+        if (nextIndex >= travelImages.length) {
+          setHideImageAfterFailures((hiddenCurrent) => ({ ...hiddenCurrent, [postId]: true }));
+          return current;
+        }
+        return { ...current, [postId]: nextIndex };
+      });
+      return;
+    }
+
+    retryPostImage(postId);
   }
 
   if (loading) {
@@ -83,7 +155,7 @@ export default function Posts() {
     );
   }
 
-  if (!selectedPost) {
+  if (posts.length === 0) {
     return (
       <div className="mx-auto w-[min(1400px,calc(100%-40px))] pt-36">
         <EmptyState title="No feed posts yet" body="The feed shows posts from other travelers, not your own posts." />
@@ -91,237 +163,159 @@ export default function Posts() {
     );
   }
 
-  const commentCount = commentCounts[selectedPost.id] || 0;
-  const activeLiked = Boolean(liked[selectedPost.id]);
-  const activeReshared = Boolean(reshared[selectedPost.id]);
-  const likeCount = activeLiked ? "1.3k" : "1.2k";
-  const reshareCount = activeReshared ? 19 : 18;
-  const comments = commentsByPost[selectedPost.id] || [];
-  const postPhotos = getPostImages(selectedPost, selectedIndex);
-  const image = postPhotos[photoIndex];
-  const avatar = author?.avatar || avatarImages[selectedIndex % avatarImages.length];
-
-  function goToPhoto(index) {
-    setPhotoIndex((index + postPhotos.length) % postPhotos.length);
-  }
-
-  async function addComment(event) {
-    event.preventDefault();
-    if (!commentDraft.trim()) return;
-
-    const created = await api.post("/comments", {
-      postId: selectedPost.id,
-      userId: user.id,
-      name: `${user.name} comment`,
-      email: user.email,
-      body: commentDraft.trim()
-    });
-
-    setCommentsByPost((current) => ({
-      ...current,
-      [selectedPost.id]: [...(current[selectedPost.id] || []), created]
-    }));
-    setCommentCounts((current) => ({
-      ...current,
-      [selectedPost.id]: (current[selectedPost.id] || 0) + 1
-    }));
-    setCommentDraft("");
-    setShowComments(true);
-  }
-
-  async function toggleReshare() {
-    setReshared((current) => ({ ...current, [selectedPost.id]: !current[selectedPost.id] }));
-    await navigator.clipboard?.writeText(window.location.href);
-  }
-
-  function getCommentAuthor(comment) {
-    if (Number(comment.userId) === Number(user.id)) return user;
-    return authors[comment.userId];
-  }
-
-  function getCommentAvatar(comment, index) {
-    const commentAuthor = getCommentAuthor(comment);
-    const fallbackIndex = Number.isFinite(Number(comment.userId)) ? Number(comment.userId) - 1 : index;
-    return commentAuthor?.avatar || avatarImages[Math.abs(fallbackIndex) % avatarImages.length];
-  }
-
   return (
     <div className="min-h-screen bg-background px-5 pb-24 pt-36 text-[#101727] md:px-10 md:pb-12">
-      <main className="mx-auto grid min-h-[760px] w-full max-w-[1400px] gap-8 md:grid-cols-[1.05fr_1fr]">
-        <section className="group relative min-h-[520px] overflow-hidden rounded-[32px] shadow-floating md:min-h-[760px]">
-          <img src={image} alt={selectedPost.title} className="h-full w-full object-cover" />
+      <main className="mx-auto flex w-full max-w-[1400px] flex-col gap-6">
+        {posts.map((post, index) => {
+          const author = authors[post.userId];
+          const avatar = author?.avatar || avatarImages[index % avatarImages.length];
+          const commentCount = commentCounts[post.id] || 0;
+          const activeLiked = Boolean(liked[post.id]);
+          const activeReshared = Boolean(reshared[post.id]);
+          const likeCount = activeLiked ? "1.3k" : "1.2k";
+          const reshareCount = activeReshared ? 19 : 18;
+          const comments = commentsByPost[post.id] || [];
+          const commentsOpen = Boolean(showComments[post.id]);
+          const image = getResolvedPostImage(post, index);
 
-          {postPhotos.length > 1 && (
-            <>
-              <button
-                className="absolute left-5 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-white/25 bg-white/30 text-white opacity-100 backdrop-blur-md transition hover:bg-white/50 md:opacity-0 md:group-hover:opacity-100"
-                onClick={() => goToPhoto(photoIndex - 1)}
-                aria-label="Previous photo"
+          return (
+            <div
+              key={post.id}
+              className={`overflow-hidden rounded-[32px] bg-white shadow-spatial flex flex-col ${
+                commentsOpen ? "h-auto" : "h-[24rem]"
+              }`}
+            >
+              {/* Top: Content Grid (2 columns when not expanded) */}
+              <div
+                className={`grid min-h-0 gap-6 overflow-hidden md:h-[19rem] md:grid-cols-2 ${
+                  commentsOpen ? "md:flex-none" : "flex-1"
+                }`}
               >
-                <Icon name="chevron_left" />
-              </button>
-              <button
-                className="absolute right-5 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-white/25 bg-white/30 text-white opacity-100 backdrop-blur-md transition hover:bg-white/50 md:opacity-0 md:group-hover:opacity-100"
-                onClick={() => goToPhoto(photoIndex + 1)}
-                aria-label="Next photo"
-              >
-                <Icon name="chevron_right" />
-              </button>
-            </>
-          )}
+                {/* Left: Content */}
+                <div className="flex min-h-0 flex-col overflow-hidden">
+                  {/* Author & Content */}
+                  <div className="flex flex-col flex-shrink-0 overflow-y-auto p-8 pb-6">
+                    {/* Author Header */}
+                    <header className="mb-6 flex items-center gap-4">
+                      <img src={avatar} alt={author?.name || "Travel author"} className="h-12 w-12 flex-shrink-0 rounded-full border border-outline-variant object-cover" />
+                      <div className="min-w-0 flex-1">
+                        <h3 className="truncate text-sm font-bold">{author?.name || "Travel Author"}</h3>
+                        <p className="truncate text-xs text-on-surface-variant">{author?.company?.name || "Travel Photojournalist"}</p>
+                      </div>
+                    </header>
 
-          {postPhotos.length > 1 && (
-            <div className="absolute bottom-7 left-1/2 flex -translate-x-1/2 gap-2">
-              {postPhotos.map((photo, index) => (
-                <button
-                  key={`${selectedPost.id}-${photo}-${index}`}
-                  className={`h-2 rounded-full transition ${index === photoIndex ? "w-7 bg-white" : "w-2 bg-white/55"}`}
-                  onClick={() => goToPhoto(index)}
-                  aria-label={`Open photo ${index + 1}`}
-                />
-              ))}
-            </div>
-          )}
-        </section>
+                    {/* Post Content */}
+                    <section className="mb-4 flex-shrink-0">
+                      <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-primary">Explore</p>
+                      <h2 className="mb-2 font-serif text-lg font-medium leading-tight line-clamp-2">{post.title}</h2>
+                      <p className="text-xs leading-relaxed text-[#263149] line-clamp-3">{post.body}</p>
+                    </section>
+                  </div>
+                </div>
 
-        <article className="flex min-h-[520px] flex-col rounded-[32px] bg-white p-8 shadow-spatial md:min-h-[760px] md:p-10">
-          <header className="mb-12 flex items-center gap-4">
-            <img src={avatar} alt={author?.name || "Travel author"} className="h-14 w-14 rounded-full border border-outline-variant object-cover" />
-            <div>
-              <h2 className="text-base font-bold">{author?.name || "Travel Author"}</h2>
-              <p className="text-[15px] text-on-surface-variant">{author?.company?.name || "Travel Photojournalist"}</p>
-            </div>
-          </header>
-
-          <section className="flex-1">
-            <p className="mb-4 text-sm font-bold uppercase tracking-[0.18em] text-primary">Explore</p>
-            <h1 className="max-w-[640px] font-serif text-5xl font-medium leading-[1.12] tracking-[-0.01em] md:text-6xl">{selectedPost.title}</h1>
-            <div className="mt-8 max-w-[680px] space-y-5 text-[20px] leading-[1.65] text-[#263149]">
-              {selectedPost.body
-                .split(". ")
-                .filter(Boolean)
-                .reduce((paragraphs, sentence, index) => {
-                  const target = Math.floor(index / 2);
-                  paragraphs[target] = `${paragraphs[target] || ""}${paragraphs[target] ? ". " : ""}${sentence}`;
-                  return paragraphs;
-                }, [])
-                .map((paragraph, index) => (
-                  <p key={index}>{paragraph.endsWith(".") ? paragraph : `${paragraph}.`}</p>
-                ))}
-            </div>
-          </section>
-
-          <footer className="mt-10 flex flex-wrap items-center gap-4 border-t border-surface-high pt-8">
-            <button
-              className={`inline-flex items-center gap-3 rounded-full px-5 py-3 text-sm font-bold transition ${
-                activeLiked ? "bg-primary text-white" : "bg-surface-low text-on-surface hover:bg-surface-container"
-              }`}
-              onClick={() => setLiked((current) => ({ ...current, [selectedPost.id]: !current[selectedPost.id] }))}
-            >
-              <Icon name="heart" size={25} strokeWidth={2.1} />
-              {likeCount}
-            </button>
-            <button
-              className={`inline-flex items-center gap-3 rounded-full px-5 py-3 text-sm font-bold transition ${
-                showComments ? "bg-primary text-white" : "bg-surface-low text-on-surface hover:bg-surface-container"
-              }`}
-              onClick={() => setShowComments((current) => !current)}
-            >
-              <Icon name="comment" size={25} strokeWidth={2.1} />
-              {commentCount}
-            </button>
-            <button
-              className={`inline-flex items-center gap-3 rounded-full px-5 py-3 text-sm font-bold transition md:ml-2 ${
-                activeReshared ? "bg-primary text-white" : "bg-surface-low text-on-surface hover:bg-surface-container"
-              }`}
-              onClick={toggleReshare}
-            >
-              <Icon name="share" size={25} strokeWidth={2.1} />
-              {reshareCount}
-            </button>
-          </footer>
-
-          {showComments && (
-            <section className="mt-6 rounded-[28px] bg-surface-low p-5">
-              <div className="mb-5 flex items-center justify-between gap-4">
-                <h2 className="font-serif text-3xl">Comments</h2>
-                <span className="rounded-full bg-white px-3 py-1 text-sm font-bold text-on-surface-variant">{commentCount}</span>
+                {/* Right: Image */}
+                <div className="hidden h-full min-h-0 overflow-hidden bg-surface-low md:flex">
+                  {image ? (
+                    <img
+                      key={image}
+                      src={image}
+                      alt={post.title}
+                      className="h-full w-full object-cover object-center"
+                      onError={(event) => {
+                        event.currentTarget.style.visibility = "hidden";
+                        handleImageError(post.id);
+                      }}
+                    />
+                  ) : (
+                    <div className="h-full w-full bg-surface-low" />
+                  )}
+                </div>
               </div>
 
-              <form className="mb-5 flex flex-col gap-3 md:flex-row" onSubmit={addComment}>
-                <input
-                  className="field"
-                  value={commentDraft}
-                  onChange={(event) => setCommentDraft(event.target.value)}
-                  placeholder="Write a comment..."
-                />
-                <button className="btn-primary whitespace-nowrap">Post</button>
-              </form>
+              {/* Buttons Row - Full width */}
+              <div className="border-t border-surface-high px-8 py-3 flex-shrink-0 flex items-center justify-between">
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    className={`inline-flex h-10 items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold transition ${
+                      activeLiked ? "bg-primary text-white" : "bg-surface-low text-on-surface hover:bg-surface-container"
+                    }`}
+                    onClick={() => setLiked((current) => ({ ...current, [post.id]: !current[post.id] }))}
+                  >
+                    <Icon name="heart" size={16} strokeWidth={2} />
+                    <span>{likeCount}</span>
+                  </button>
+                  <button
+                    className={`inline-flex h-10 items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold transition ${
+                      commentsOpen ? "bg-primary text-white" : "bg-surface-low text-on-surface hover:bg-surface-container"
+                    }`}
+                    onClick={() => setShowComments((current) => ({ ...current, [post.id]: !current[post.id] }))}
+                  >
+                    <Icon name="comment" size={16} strokeWidth={2} />
+                    <span>{commentCount}</span>
+                  </button>
+                  <button
+                    className={`inline-flex h-10 items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold transition ${
+                      activeReshared ? "bg-primary text-white" : "bg-surface-low text-on-surface hover:bg-surface-container"
+                    }`}
+                    onClick={() => toggleReshare(post.id)}
+                    title="Share this post"
+                  >
+                    <Icon name="share" size={16} strokeWidth={2} />
+                    <span>{reshareCount}</span>
+                  </button>
+                </div>
+              </div>
 
-              {comments.length === 0 ? (
-                <p className="rounded-2xl bg-white p-4 text-sm font-semibold text-on-surface-variant">No comments yet. Start the conversation.</p>
-              ) : (
-                <ul className="max-h-60 space-y-3 overflow-y-auto pr-1">
-                  {comments.map((comment, index) => {
-                    const commentAuthor = getCommentAuthor(comment);
+              {/* Comments Section - Full Width When Expanded */}
+              {commentsOpen && (
+                <section className="border-t border-surface-high flex flex-col gap-2 bg-surface-low p-4">
+                  <div className="mb-2 flex items-center justify-between gap-2 flex-shrink-0">
+                    <h3 className="font-serif text-xs font-medium">Comments ({commentCount})</h3>
+                  </div>
 
-                    return (
-                      <li key={comment.id} className="rounded-2xl bg-white p-4">
-                        <div className="mb-3 flex items-start gap-3">
-                          <img
-                            src={getCommentAvatar(comment, index)}
-                            alt={commentAuthor?.name || comment.email || "Comment author"}
-                            className="h-10 w-10 shrink-0 rounded-full border border-outline-variant object-cover"
-                          />
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center justify-between gap-3">
-                              <div className="min-w-0">
-                                <p className="truncate text-sm font-bold">{commentAuthor?.name || comment.email}</p>
-                                <p className="truncate text-xs font-semibold text-on-surface-variant">{comment.email}</p>
+                  <form className="mb-2 flex flex-col gap-1.5 flex-shrink-0" onSubmit={(e) => addComment(e, post.id)}>
+                    <input
+                      className="field text-xs px-3 py-2"
+                      value={commentDraft[post.id] || ""}
+                      onChange={(e) => setCommentDraft((current) => ({ ...current, [post.id]: e.target.value }))}
+                      placeholder="Add comment..."
+                    />
+                    <button className="btn-primary text-xs py-1.5">Post</button>
+                  </form>
+
+                  {comments.length === 0 ? (
+                    <p className="text-xs text-on-surface-variant italic px-1">No comments yet. Be the first!</p>
+                  ) : (
+                    <ul className="space-y-2 max-h-80 overflow-y-auto pr-2">
+                      {comments.map((comment) => {
+                        const commentAuthor = getCommentAuthor(comment);
+                        return (
+                          <li key={comment.id} className="flex gap-2 rounded-lg bg-white p-2">
+                            <img
+                              src={getCommentAvatar(comment, 0)}
+                              alt={commentAuthor?.name || comment.email || "User"}
+                              className="h-6 w-6 flex-shrink-0 rounded-full border border-outline-variant object-cover"
+                            />
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center justify-between gap-1">
+                                <p className="truncate text-xs font-bold">{commentAuthor?.name || comment.email}</p>
+                                {Number(comment.userId) === Number(user.id) && (
+                                  <span className="flex-shrink-0 rounded-full bg-primary-soft px-1.5 py-0.5 text-[10px] font-bold text-primary">You</span>
+                                )}
                               </div>
-                              {Number(comment.userId) === Number(user.id) && (
-                                <span className="shrink-0 rounded-full bg-primary-soft px-2 py-1 text-xs font-bold text-primary">You</span>
-                              )}
+                              <p className="mt-0.5 text-xs leading-snug text-on-surface-variant break-words">{comment.body}</p>
                             </div>
-                            <p className="mt-2 text-sm leading-6 text-on-surface-variant">{comment.body}</p>
-                          </div>
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </section>
               )}
-            </section>
-          )}
-        </article>
+            </div>
+          );
+        })}
       </main>
-
-      {posts.length > 1 && (
-        <div className="mt-10 hidden justify-center md:flex">
-          <button className="text-outline-variant transition hover:text-primary" onClick={() => goToIndex(selectedIndex + 1)} aria-label="Next feed item">
-            <Icon name="chevron_right" className="rotate-90" size={34} />
-          </button>
-        </div>
-      )}
     </div>
   );
-}
-
-function normalizePostImages(images, fallbackIndex) {
-  const uniqueImages = [];
-  images.forEach((image) => {
-    if (typeof image !== "string") return;
-    const value = image.trim();
-    if (value && !uniqueImages.includes(value)) {
-      uniqueImages.push(value);
-    }
-  });
-  return uniqueImages.length ? uniqueImages : [travelImages[Math.abs(fallbackIndex) % travelImages.length]];
-}
-
-function getPostImages(post, index) {
-  if (Array.isArray(post.images) && post.images.length) {
-    return normalizePostImages(post.images, index);
-  }
-  return normalizePostImages([post.image], index);
 }
