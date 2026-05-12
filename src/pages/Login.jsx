@@ -12,7 +12,7 @@ export default function Login() {
   const location = useLocation();
 
   if (isAuthenticated) {
-    return <Navigate to={location.state?.from?.pathname || `/users/${user.id}/posts`} replace />;
+    return <Navigate to={location.state?.from?.pathname || "/home"} replace />;
   }
 
   async function handleSubmit(event) {
@@ -21,7 +21,7 @@ export default function Login() {
     setSubmitting(true);
     try {
       const loggedIn = await login(form.username, form.password);
-      navigate(location.state?.from?.pathname || `/users/${loggedIn.id}/posts`, { replace: true });
+      navigate(location.state?.from?.pathname || "/home", { replace: true });
     } catch (err) {
       setError(err.message);
     } finally {

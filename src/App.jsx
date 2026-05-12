@@ -38,11 +38,11 @@ export default function App() {
       <Route path="/register/details" element={<RegisterDetails />} />
       <Route element={<RequireAuth />}>
         <Route element={<AppShell />}>
-          <Route path="/home" element={<Home />} />
-          <Route path="/home/:postId" element={<Home />} />
+          <Route path="/home" element={<Posts />} />
+          <Route path="/home/:postId" element={<Posts />} />
           <Route path="/users/:userId/todos" element={<Todos />} />
-          <Route path="/users/:userId/posts" element={<Posts />} />
-          <Route path="/users/:userId/posts/:postId" element={<Posts />} />
+          <Route path="/users/:userId/posts" element={<Home />} />
+          <Route path="/users/:userId/posts/:postId" element={<Home />} />
           <Route path="/users/:userId/albums" element={<Albums />} />
           <Route path="/users/:userId/albums/:albumId/photos" element={<AlbumPhotos />} />
         </Route>

@@ -416,6 +416,9 @@
       "tags": [
         "Hiking",
         "Nature"
+      ],
+      "images": [
+        "https://images.unsplash.com/photo-1491555103944-7c647fd857e6?auto=format&fit=crop&w=1200&q=80"
       ]
     },
     {
@@ -428,7 +431,11 @@
       "date": "Sep 28, 2023",
       "tags": [
         "Urban",
-        "Food"
+        "Food",
+        "Nights"
+      ],
+      "images": [
+        "https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&w=1200&q=80"
       ]
     },
     {
@@ -839,6 +846,17 @@
       "title": "ssss",
       "cover": "https://images.unsplash.com/photo-1528164344705-47542687000d?auto=format&fit=crop&w=1200&q=80",
       "id": 6
+    },
+    {
+      "userId": 1,
+      "title": "Jerusalem",
+      "cover": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80",
+      "id": 7
+    },
+    {
+      "userId": 1,
+      "title": "Moscow",
+      "id": 8
     }
   ],
   "photos": [
@@ -967,6 +985,20 @@
       "title": "Lisbon tram line",
       "url": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80",
       "thumbnailUrl": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=300&q=80"
+    },
+    {
+      "albumId": 1,
+      "title": "Street at night",
+      "url": "https://media.istockphoto.com/id/2211639961/photo/vibrant-springtime-sunrise-over-the-historic-old-town-higashiyama-district-of-kyoto-japan-asia.webp?a=1&b=1&s=612x612&w=0&k=20&c=UXleCn0MDxQ7ePxNHb0BWkYoXl7gnvznoqcASSh77qg=",
+      "thumbnailUrl": "https://media.istockphoto.com/id/2211639961/photo/vibrant-springtime-sunrise-over-the-historic-old-town-higashiyama-district-of-kyoto-japan-asia.webp?a=1&b=1&s=612x612&w=0&k=20&c=UXleCn0MDxQ7ePxNHb0BWkYoXl7gnvznoqcASSh77qg=",
+      "id": 19
+    },
+    {
+      "albumId": 7,
+      "title": "The Westeren Wall",
+      "url": "https://images.unsplash.com/photo-1593019612399-86daa4d18cd5?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8d2VzdGVybiUyMHdhbGx8ZW58MHx8MHx8fDA%3D",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1593019612399-86daa4d18cd5?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8d2VzdGVybiUyMHdhbGx8ZW58MHx8MHx8fDA%3D",
+      "id": 20
     }
   ]
 }

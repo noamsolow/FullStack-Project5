@@ -36,7 +36,7 @@ export default function RegisterDetails() {
     try {
       const created = await register({ ...details, username: pending.username, password: pending.password });
       sessionStorage.removeItem("travelhub.pendingRegister");
-      navigate(`/users/${created.id}/posts`, { replace: true });
+      navigate("/home", { replace: true });
     } catch (err) {
       setError(err.message);
     }

@@ -26,21 +26,21 @@ export default function AppShell() {
     <div className="min-h-screen bg-background text-on-surface">
       <header className="fixed inset-x-0 top-0 z-40 flex justify-center px-4 py-5 pointer-events-none">
         <nav className="glass-nav pointer-events-auto flex w-full max-w-[1200px] items-center justify-between gap-4 rounded-full px-7 py-4 shadow-floating">
-          <NavLink to={`/users/${user.id}/posts`} className="font-serif text-4xl font-bold tracking-tight text-[#101727]">
+          <NavLink to="/home" className="font-serif text-4xl font-bold tracking-tight text-[#101727]">
             TravelHub
           </NavLink>
           <div className="hidden items-center gap-6 md:flex">
-            <NavLink to={`/users/${user.id}/posts`} className={activeClass}>
-              Explore
+            <NavLink to="/home" className={activeClass}>
+              Home
             </NavLink>
             <NavLink to={`/users/${user.id}/todos`} className={activeClass}>
-              Trips
+              Todos
             </NavLink>
-            <NavLink to="/home" className={activeClass}>
-              Journal
+            <NavLink to={`/users/${user.id}/posts`} className={activeClass}>
+              My Posts
             </NavLink>
             <NavLink to={`/users/${user.id}/albums`} className={activeClass}>
-              Community
+              My Albums
             </NavLink>
           </div>
           <div className="flex items-center gap-4">
@@ -62,19 +62,19 @@ export default function AppShell() {
         <div className="mx-auto grid max-w-md grid-cols-5 gap-2 text-xs font-bold">
           <NavLink to={`/users/${user.id}/todos`} className="flex flex-col items-center gap-1 text-on-surface-variant">
             <Icon name="checklist" />
-            Trips
-          </NavLink>
-          <NavLink to={`/users/${user.id}/posts`} className="flex flex-col items-center gap-1 text-on-surface-variant">
-            <Icon name="article" />
-            Explore
+            Todos
           </NavLink>
           <NavLink to="/home" className="flex flex-col items-center gap-1 text-on-surface-variant">
+            <Icon name="article" />
+            Home
+          </NavLink>
+          <NavLink to={`/users/${user.id}/posts`} className="flex flex-col items-center gap-1 text-on-surface-variant">
             <Icon name="edit" />
-            Journal
+            My Posts
           </NavLink>
           <NavLink to={`/users/${user.id}/albums`} className="flex flex-col items-center gap-1 text-on-surface-variant">
             <Icon name="photo_library" />
-            Community
+            My Albums
           </NavLink>
           <button className="flex flex-col items-center gap-1 text-on-surface-variant" onClick={logout}>
             <Icon name="close" />

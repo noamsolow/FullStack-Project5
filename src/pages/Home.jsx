@@ -3,7 +3,7 @@ import { Navigate, useNavigate, useParams } from "react-router-dom";
 import Icon from "../components/Icon.jsx";
 import { EmptyState, ErrorState, LoadingState } from "../components/Status.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
-import { travelImages } from "../data/travelImages.js";
+import { avatarImages, travelImages } from "../data/travelImages.js";
 import { api } from "../lib/api.js";
 
 const initialDraft = {
@@ -21,6 +21,10 @@ export default function Home() {
   const { postId } = useParams();
   const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
+  const [authors, setAuthors] = useState({});
+  const [commentsByPost, setCommentsByPost] = useState({});
+  const [commentDraft, setCommentDraft] = useState({});
+  const [showComments, setShowComments] = useState({});
   const [draft, setDraft] = useState(initialDraft);
   const [expanded, setExpanded] = useState(false);
   const [selectedFileName, setSelectedFileName] = useState("");
@@ -33,9 +37,17 @@ export default function Home() {
 
   useEffect(() => {
     setLoading(true);
-    api
-      .get(`/posts?userId=${user.id}`, { cache: false })
-      .then((data) => setPosts(data))
+    Promise.all([api.get(`/posts?userId=${user.id}`, { cache: false }), api.get("/users", { cache: false }), api.get("/comments", { cache: false })])
+      .then(([postData, userData, commentData]) => {
+        setPosts(postData);
+        setAuthors(Object.fromEntries(userData.map((author) => [author.id, author])));
+        setCommentsByPost(
+          commentData.reduce((acc, comment) => {
+            acc[comment.postId] = [...(acc[comment.postId] || []), comment];
+            return acc;
+          }, {})
+        );
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [user.id]);
@@ -122,18 +134,58 @@ export default function Home() {
     await api.delete(`/posts/${id}`);
     setPosts((current) => current.filter((item) => item.id !== id));
     if (Number(postId) === Number(id)) {
-      navigate("/home", { replace: true });
+      navigate(`/users/${user.id}/posts`, { replace: true });
     }
   }
 
   function openPost(post) {
-    navigate(`/home/${post.id}`);
+    navigate(`/users/${user.id}/posts/${post.id}`);
   }
 
   function goToPost(index) {
     if (!sortedPosts.length) return;
     const post = sortedPosts[(index + sortedPosts.length) % sortedPosts.length];
-    navigate(`/home/${post.id}`);
+    navigate(`/users/${user.id}/posts/${post.id}`);
+  }
+
+  async function addComment(event, postId) {
+    event.preventDefault();
+    if (!commentDraft[postId]?.trim()) return;
+
+    const created = await api.post("/comments", {
+      postId,
+      userId: user.id,
+      name: `${user.name} comment`,
+      email: user.email,
+      body: commentDraft[postId].trim()
+    });
+
+    setCommentsByPost((current) => ({
+      ...current,
+      [postId]: [...(current[postId] || []), created]
+    }));
+    setCommentDraft((current) => ({ ...current, [postId]: "" }));
+    setShowComments((current) => ({ ...current, [postId]: true }));
+  }
+
+  async function deleteComment(comment) {
+    if (Number(comment.userId) !== Number(user.id)) return;
+    await api.delete(`/comments/${comment.id}`);
+    setCommentsByPost((current) => ({
+      ...current,
+      [comment.postId]: (current[comment.postId] || []).filter((item) => Number(item.id) !== Number(comment.id))
+    }));
+  }
+
+  function getCommentAuthor(comment) {
+    if (Number(comment.userId) === Number(user.id)) return user;
+    return authors[comment.userId];
+  }
+
+  function getCommentAvatar(comment, index) {
+    const commentAuthor = getCommentAuthor(comment);
+    const fallbackIndex = Number.isFinite(Number(comment.userId)) ? Number(comment.userId) - 1 : index;
+    return commentAuthor?.avatar || avatarImages[Math.abs(fallbackIndex) % avatarImages.length];
   }
 
   if (loading) {
@@ -153,7 +205,7 @@ export default function Home() {
   }
 
   if (postId && selectedIndex === -1) {
-    return <Navigate to="/home" replace />;
+    return <Navigate to={`/users/${user.id}/posts`} replace />;
   }
 
   if (selectedPost) {
@@ -166,7 +218,7 @@ export default function Home() {
         setEditing={setEditing}
         onSave={savePost}
         onDelete={deletePost}
-        onBack={() => navigate("/home")}
+        onBack={() => navigate(`/users/${user.id}/posts`)}
         onNext={() => goToPost(selectedIndex + 1)}
         onPrevious={() => goToPost(selectedIndex - 1)}
         hasMultiple={sortedPosts.length > 1}
@@ -176,7 +228,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background pb-24 pt-36 text-[#101727] md:pb-16">
-      <main className="mx-auto w-[min(1200px,calc(100%-40px))] md:w-[min(1200px,calc(100%-80px))]">
+      <main className="mx-auto w-[min(1400px,calc(100%-40px))] md:w-[min(1400px,calc(100%-80px))]">
         <header className="mb-16">
           <h1 className="font-serif text-6xl font-medium leading-tight md:text-7xl">Personal Logs</h1>
           <p className="mt-5 max-w-2xl text-xl leading-8 text-on-surface-variant">Document your journeys, one memory at a time.</p>
@@ -248,6 +300,16 @@ export default function Home() {
                 index={index}
                 editing={editing}
                 setEditing={setEditing}
+                user={user}
+                comments={commentsByPost[post.id] || []}
+                commentsOpen={Boolean(showComments[post.id])}
+                commentDraft={commentDraft[post.id] || ""}
+                onToggleComments={() => setShowComments((current) => ({ ...current, [post.id]: !current[post.id] }))}
+                onCommentDraftChange={(value) => setCommentDraft((current) => ({ ...current, [post.id]: value }))}
+                onAddComment={addComment}
+                onDeleteComment={deleteComment}
+                getCommentAuthor={getCommentAuthor}
+                getCommentAvatar={getCommentAvatar}
                 onSave={savePost}
                 onDelete={deletePost}
                 onOpen={openPost}
@@ -431,106 +493,205 @@ function JournalDisplay({ post, index, user, editing, setEditing, onSave, onDele
   );
 }
 
-function LogCard({ post, index, editing, setEditing, onSave, onDelete, onOpen }) {
+function LogCard({
+  post,
+  index,
+  editing,
+  setEditing,
+  user,
+  comments,
+  commentsOpen,
+  commentDraft,
+  onToggleComments,
+  onCommentDraftChange,
+  onAddComment,
+  onDeleteComment,
+  getCommentAuthor,
+  getCommentAvatar,
+  onSave,
+  onDelete,
+  onOpen
+}) {
   const isEditing = editing?.id === post.id;
   const location = post.location || inferLocation(post.title, index);
   const date = post.date || fallbackDate(index);
   const tags = Array.isArray(post.tags) && post.tags.length ? post.tags : fallbackTags(index);
   const image = getPostImages(post, index)[0];
+  const displayImage = isEditing ? normalizePostImages(parseImageList(editing.imagesText || editing.image), index)[0] : image;
+  const avatar = user.avatar || avatarImages[(Number(user.id) - 1) % avatarImages.length];
 
   return (
     <article
-      className={`group relative overflow-hidden rounded-[32px] bg-white shadow-spatial md:grid md:min-h-[300px] md:grid-cols-[0.68fr_1fr] ${
-        isEditing ? "" : "cursor-pointer transition hover:-translate-y-1 hover:shadow-floating"
+      className={`group overflow-hidden rounded-[32px] bg-white shadow-spatial ${
+        isEditing ? "h-auto" : "min-h-[44rem] transition hover:-translate-y-1 hover:shadow-floating md:min-h-0"
       }`}
       onClick={() => !isEditing && onOpen(post)}
-      onKeyDown={(event) => {
-        if (!isEditing && (event.key === "Enter" || event.key === " ")) {
-          event.preventDefault();
-          onOpen(post);
-        }
-      }}
-      role={isEditing ? undefined : "button"}
-      tabIndex={isEditing ? undefined : 0}
     >
-      <div className="absolute right-6 top-6 z-10 flex gap-2 rounded-full bg-white/85 px-3 py-2 opacity-100 shadow-sm backdrop-blur-md transition md:opacity-0 md:group-hover:opacity-100">
-        {isEditing ? (
-          <button className="rounded-full px-3 py-1 text-sm font-bold text-primary hover:bg-surface-low" onClick={() => onSave(post)}>
-            Save
-          </button>
-        ) : (
-          <button
-            className="grid h-8 w-8 place-items-center rounded-full text-outline transition hover:bg-surface-low hover:text-primary"
-            onClick={(event) => {
-              event.stopPropagation();
-              setEditing({
-                id: post.id,
-                title: post.title,
-                body: post.body,
-                location,
-                date,
-                image,
-                imagesText: getPostImages(post, index).join("\n"),
-                tags: tags.join(", ")
-              });
-            }}
-            aria-label="Edit post"
-          >
-            <Icon name="edit" size={18} />
-          </button>
-        )}
-        <button
-          className="grid h-8 w-8 place-items-center rounded-full text-outline transition hover:bg-surface-low hover:text-error"
-          onClick={(event) => {
-            event.stopPropagation();
-            onDelete(post.id);
-          }}
-          aria-label="Delete post"
-        >
-          <Icon name="delete" size={18} />
-        </button>
-      </div>
+      <div className={`grid min-h-0 gap-0 overflow-hidden md:grid-cols-[0.75fr_1.35fr] ${isEditing ? "md:min-h-[40rem]" : "md:h-[40rem]"}`}>
+        <div className="order-2 flex min-h-0 flex-col overflow-hidden md:order-1">
+          <div className="flex flex-shrink-0 flex-col overflow-y-auto p-8 pb-7 md:p-12 md:pb-10">
+            <header className="mb-12 flex items-center gap-5">
+              <img src={avatar} alt={user.name} className="h-16 w-16 flex-shrink-0 rounded-full border border-outline-variant object-cover" />
+              <div className="min-w-0 flex-1">
+                <h3 className="truncate text-lg font-bold">{user.name}</h3>
+                <p className="truncate text-base text-on-surface-variant">@{user.username}</p>
+              </div>
+            </header>
 
-      <div className="relative min-h-[230px] md:min-h-full">
-        <img src={isEditing ? normalizePostImages(parseImageList(editing.imagesText || editing.image), index)[0] : image} alt={post.title} className="absolute inset-0 h-full w-full object-cover" />
-      </div>
-
-      <div className="flex flex-col justify-center p-7 md:p-10">
-        {isEditing ? (
-          <div className="space-y-3">
-            <div className="grid gap-3 md:grid-cols-2">
-              <input className="field" value={editing.location} onChange={(event) => setEditing({ ...editing, location: event.target.value })} />
-              <input className="field" value={editing.date} onChange={(event) => setEditing({ ...editing, date: event.target.value })} />
-            </div>
-            <input className="field" value={editing.title} onChange={(event) => setEditing({ ...editing, title: event.target.value })} />
-            <textarea className="field min-h-28" value={editing.body} onChange={(event) => setEditing({ ...editing, body: event.target.value })} />
-            <input className="field" value={editing.tags} onChange={(event) => setEditing({ ...editing, tags: event.target.value })} />
-            <textarea
-              className="field min-h-24"
-              value={editing.imagesText}
-              onChange={(event) => setEditing({ ...editing, imagesText: event.target.value })}
-              placeholder="Image URLs separated by commas or new lines"
-            />
+            {isEditing ? (
+              <div className="space-y-4" onClick={(event) => event.stopPropagation()}>
+                <div className="grid gap-3 md:grid-cols-2">
+                  <input className="field text-base md:text-lg" value={editing.location} onChange={(event) => setEditing({ ...editing, location: event.target.value })} />
+                  <input className="field text-base md:text-lg" value={editing.date} onChange={(event) => setEditing({ ...editing, date: event.target.value })} />
+                </div>
+                <input className="field text-base md:text-lg" value={editing.title} onChange={(event) => setEditing({ ...editing, title: event.target.value })} />
+                <textarea className="field min-h-40 text-base md:text-lg" value={editing.body} onChange={(event) => setEditing({ ...editing, body: event.target.value })} />
+                <input className="field text-base md:text-lg" value={editing.tags} onChange={(event) => setEditing({ ...editing, tags: event.target.value })} />
+                <textarea
+                  className="field min-h-28 text-base md:text-lg"
+                  value={editing.imagesText}
+                  onChange={(event) => setEditing({ ...editing, imagesText: event.target.value })}
+                  placeholder="Image URLs separated by commas or new lines"
+                />
+              </div>
+            ) : (
+              <section>
+                <div className="mb-5 flex flex-wrap items-center gap-3 text-base font-bold">
+                  <span className="uppercase tracking-[0.16em] text-secondary">{location}</span>
+                  <span className="text-outline">•</span>
+                  <span className="text-outline">{date}</span>
+                </div>
+                <p className="mb-5 text-base font-bold uppercase tracking-[0.18em] text-primary">Journal</p>
+                <h2 className="mb-6 font-serif text-4xl font-medium leading-[1.06] transition group-hover:text-primary md:text-6xl">{post.title}</h2>
+                <p className="line-clamp-5 text-xl leading-9 text-[#263149] md:text-2xl md:leading-10">{post.body}</p>
+                <div className="mt-8 flex flex-wrap gap-2">
+                  {tags.map((tag) => (
+                    <span key={tag} className="rounded-full bg-surface-low px-4 py-2 text-sm font-semibold text-on-surface-variant">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </section>
+            )}
           </div>
-        ) : (
-          <>
-            <div className="mb-5 flex items-center gap-3 text-sm font-bold">
-              <span className="uppercase tracking-[0.16em] text-secondary">{location}</span>
-              <span className="text-outline">•</span>
-              <span className="text-outline">{date}</span>
-            </div>
-            <h2 className="font-serif text-4xl font-medium leading-tight transition group-hover:text-primary md:text-5xl">{post.title}</h2>
-            <p className="mt-5 line-clamp-2 text-lg leading-8 text-on-surface-variant">{post.body}</p>
-            <div className="mt-7 flex flex-wrap gap-2">
-              {tags.map((tag) => (
-                <span key={tag} className="rounded-full bg-surface-low px-4 py-2 text-xs font-semibold text-on-surface-variant">
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </>
-        )}
+        </div>
+
+        <div className="order-1 h-96 w-full overflow-hidden bg-surface-low md:order-2 md:h-full md:min-h-0">
+          <img src={displayImage} alt={post.title} className="h-full w-full object-cover object-center" />
+        </div>
       </div>
+
+      <div className="flex flex-shrink-0 items-center justify-between border-t border-surface-high px-8 py-5 md:px-12" onClick={(event) => event.stopPropagation()}>
+        <div className="flex flex-wrap items-center gap-4">
+          {isEditing ? (
+            <>
+              <button className="btn-primary h-14 rounded-full px-6 py-3 text-base" onClick={() => onSave(post)}>
+                Save
+              </button>
+              <button className="btn-secondary h-14 rounded-full px-6 py-3 text-base" onClick={() => setEditing(null)}>
+                Cancel
+              </button>
+            </>
+          ) : (
+            <button
+              className="inline-flex h-14 items-center gap-3 rounded-full bg-surface-low px-6 py-3 text-base font-bold text-on-surface transition hover:bg-surface-container"
+              onClick={() =>
+                setEditing({
+                  id: post.id,
+                  title: post.title,
+                  body: post.body,
+                  location,
+                  date,
+                  image,
+                  imagesText: getPostImages(post, index).join("\n"),
+                  tags: tags.join(", ")
+                })
+              }
+            >
+              <Icon name="edit" size={25} strokeWidth={2.1} />
+              Edit
+            </button>
+          )}
+          <button className="inline-flex h-14 items-center gap-3 rounded-full bg-surface-low px-6 py-3 text-base font-bold text-on-surface transition hover:bg-surface-container hover:text-error" onClick={() => onDelete(post.id)}>
+            <Icon name="delete" size={25} strokeWidth={2.1} />
+            Delete
+          </button>
+          <button
+            className={`inline-flex h-14 items-center gap-3 rounded-full px-6 py-3 text-base font-bold transition ${
+              commentsOpen ? "bg-primary text-white" : "bg-surface-low text-on-surface hover:bg-surface-container"
+            }`}
+            onClick={onToggleComments}
+          >
+            <Icon name="comment" size={25} strokeWidth={2.1} />
+            {comments.length}
+          </button>
+          <button className="inline-flex h-14 items-center gap-3 rounded-full bg-surface-low px-6 py-3 text-base font-bold text-on-surface transition hover:bg-surface-container" onClick={() => onOpen(post)}>
+            <Icon name="article" size={25} strokeWidth={2.1} />
+            Open
+          </button>
+        </div>
+        <div className="hidden text-base font-bold text-on-surface-variant md:block">{comments.length} comments</div>
+      </div>
+
+      {commentsOpen && (
+        <section className="flex flex-col gap-5 border-t border-surface-high bg-surface-low p-6 md:p-10" onClick={(event) => event.stopPropagation()}>
+          <div className="flex flex-shrink-0 items-center justify-between gap-4">
+            <h3 className="font-serif text-3xl font-medium md:text-4xl">Comments ({comments.length})</h3>
+          </div>
+
+          <form className="flex flex-shrink-0 flex-col gap-3 md:flex-row" onSubmit={(event) => onAddComment(event, post.id)}>
+            <input
+              className="field px-5 py-4 text-base md:text-lg"
+              value={commentDraft}
+              onChange={(event) => onCommentDraftChange(event.target.value)}
+              placeholder="Add comment..."
+            />
+            <button className="btn-primary px-8 py-4 text-base md:text-lg">Post</button>
+          </form>
+
+          {comments.length === 0 ? (
+            <p className="px-1 text-lg italic text-on-surface-variant">No comments yet. Be the first.</p>
+          ) : (
+            <ul className="max-h-[34rem] space-y-4 overflow-y-auto pr-2">
+              {comments.map((comment, commentIndex) => {
+                const commentAuthor = getCommentAuthor(comment);
+                const commentIdentity = commentAuthor?.username ? `@${commentAuthor.username}` : comment.email;
+                const canDelete = Number(comment.userId) === Number(user.id);
+                return (
+                  <li key={comment.id} className="flex gap-4 rounded-2xl bg-white p-5 shadow-sm">
+                    <img
+                      src={getCommentAvatar(comment, commentIndex)}
+                      alt={commentAuthor?.name || comment.email || "Comment author"}
+                      className="h-12 w-12 flex-shrink-0 rounded-full border border-outline-variant object-cover"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="truncate text-base font-bold md:text-lg">{commentAuthor?.name || comment.email}</p>
+                          <p className="truncate text-sm font-semibold text-on-surface-variant md:text-base">{commentIdentity}</p>
+                        </div>
+                        <div className="flex flex-shrink-0 items-center gap-2">
+                          {canDelete && <span className="rounded-full bg-primary-soft px-3 py-1 text-xs font-bold text-primary md:text-sm">You</span>}
+                          {canDelete && (
+                            <button
+                              className="grid h-10 w-10 place-items-center rounded-full bg-surface-low text-on-surface-variant transition hover:bg-surface-container hover:text-error"
+                              onClick={() => onDeleteComment(comment)}
+                              aria-label="Delete comment"
+                            >
+                              <Icon name="delete" size={20} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      <p className="mt-2 break-words text-base leading-7 text-on-surface-variant md:text-lg md:leading-8">{comment.body}</p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
+      )}
     </article>
   );
 }

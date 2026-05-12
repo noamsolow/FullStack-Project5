@@ -190,40 +190,40 @@ export default function Posts() {
             <div
               key={post.id}
               className={`overflow-hidden rounded-[32px] bg-white shadow-spatial flex flex-col ${
-                commentsOpen || isExpandedOnMobile ? "h-auto" : "h-[28rem]"
+                commentsOpen || isExpandedOnMobile ? "h-auto" : "min-h-[44rem] md:h-[48rem]"
               }`}
               onClick={() => handlePostPress(post.id)}
             >
               {/* Top: Content Grid (2 columns when not expanded) */}
               <div
-                className={`grid min-h-0 gap-6 overflow-hidden md:h-[23rem] md:grid-cols-2 ${
+                className={`grid min-h-0 gap-0 overflow-hidden md:h-[40rem] md:grid-cols-[0.75fr_1.35fr] ${
                   commentsOpen ? "md:flex-none" : "flex-1"
                 }`}
               >
                 {/* Left: Content */}
                 <div className="order-2 flex min-h-0 flex-col overflow-hidden md:order-1">
                   {/* Author & Content */}
-                  <div className="flex flex-col flex-shrink-0 overflow-y-auto p-8 pb-6">
+                  <div className="flex flex-shrink-0 flex-col overflow-y-auto p-8 pb-7 md:p-12 md:pb-10">
                     {/* Author Header */}
-                    <header className="mb-6 flex items-center gap-4">
-                      <img src={avatar} alt={author?.name || "Travel author"} className="h-12 w-12 flex-shrink-0 rounded-full border border-outline-variant object-cover" />
+                    <header className="mb-12 flex items-center gap-5">
+                      <img src={avatar} alt={author?.name || "Travel author"} className="h-16 w-16 flex-shrink-0 rounded-full border border-outline-variant object-cover" />
                       <div className="min-w-0 flex-1">
-                        <h3 className="truncate text-sm font-bold">{author?.name || "Travel Author"}</h3>
-                        <p className="truncate text-xs text-on-surface-variant">{author?.company?.name || "Travel Photojournalist"}</p>
+                        <h3 className="truncate text-lg font-bold">{author?.name || "Travel Author"}</h3>
+                        <p className="truncate text-base text-on-surface-variant">{author?.company?.name || "Travel Photojournalist"}</p>
                       </div>
                     </header>
 
                     {/* Post Content */}
                     <section className="mb-4 flex-shrink-0">
-                      <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-primary">Explore</p>
-                      <h2 className={`mb-2 font-serif text-lg font-medium leading-tight ${isExpandedOnMobile ? "line-clamp-none" : "line-clamp-2"}`}>{post.title}</h2>
-                      <p className={`text-xs leading-relaxed text-[#263149] ${isExpandedOnMobile ? "line-clamp-none" : "line-clamp-3"}`}>{post.body}</p>
+                      <p className="mb-5 text-base font-bold uppercase tracking-[0.18em] text-primary">Home</p>
+                      <h2 className={`mb-6 font-serif text-4xl font-medium leading-[1.06] md:text-6xl ${isExpandedOnMobile ? "line-clamp-none" : "line-clamp-3"}`}>{post.title}</h2>
+                      <p className={`text-xl leading-9 text-[#263149] md:text-2xl md:leading-10 ${isExpandedOnMobile ? "line-clamp-none" : "line-clamp-5"}`}>{post.body}</p>
                     </section>
                   </div>
                 </div>
 
                 {/* Right: Image */}
-                <div className="order-1 h-52 w-full overflow-hidden bg-surface-low md:order-2 md:h-full md:min-h-0">
+                <div className="order-1 h-96 w-full overflow-hidden bg-surface-low md:order-2 md:h-full md:min-h-0">
                   {image ? (
                     <img
                       key={image}
@@ -242,34 +242,34 @@ export default function Posts() {
               </div>
 
               {/* Buttons Row - Full width */}
-              <div className="border-t border-surface-high px-8 py-3 flex-shrink-0 flex items-center justify-between" onClick={(event) => event.stopPropagation()}>
-                <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-shrink-0 items-center justify-between border-t border-surface-high px-8 py-5 md:px-12" onClick={(event) => event.stopPropagation()}>
+                <div className="flex flex-wrap items-center gap-4">
                   <button
-                    className={`inline-flex h-10 items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold transition ${
+                    className={`inline-flex h-14 items-center gap-3 rounded-full px-6 py-3 text-base font-bold transition ${
                       activeLiked ? "bg-primary text-white" : "bg-surface-low text-on-surface hover:bg-surface-container"
                     }`}
                     onClick={() => setLiked((current) => ({ ...current, [post.id]: !current[post.id] }))}
                   >
-                    <Icon name="heart" size={16} strokeWidth={2} />
+                    <Icon name="heart" size={25} strokeWidth={2.1} />
                     <span>{likeCount}</span>
                   </button>
                   <button
-                    className={`inline-flex h-10 items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold transition ${
+                    className={`inline-flex h-14 items-center gap-3 rounded-full px-6 py-3 text-base font-bold transition ${
                       commentsOpen ? "bg-primary text-white" : "bg-surface-low text-on-surface hover:bg-surface-container"
                     }`}
                     onClick={() => setShowComments((current) => ({ ...current, [post.id]: !current[post.id] }))}
                   >
-                    <Icon name="comment" size={16} strokeWidth={2} />
+                    <Icon name="comment" size={25} strokeWidth={2.1} />
                     <span>{commentCount}</span>
                   </button>
                   <button
-                    className={`inline-flex h-10 items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold transition ${
+                    className={`inline-flex h-14 items-center gap-3 rounded-full px-6 py-3 text-base font-bold transition ${
                       activeReshared ? "bg-primary text-white" : "bg-surface-low text-on-surface hover:bg-surface-container"
                     }`}
                     onClick={() => toggleReshare(post.id)}
                     title="Share this post"
                   >
-                    <Icon name="share" size={16} strokeWidth={2} />
+                    <Icon name="share" size={25} strokeWidth={2.1} />
                     <span>{reshareCount}</span>
                   </button>
                 </div>
@@ -277,42 +277,46 @@ export default function Posts() {
 
               {/* Comments Section - Full Width When Expanded */}
               {commentsOpen && (
-                <section className="border-t border-surface-high flex flex-col gap-2 bg-surface-low p-4" onClick={(event) => event.stopPropagation()}>
-                  <div className="mb-2 flex items-center justify-between gap-2 flex-shrink-0">
-                    <h3 className="font-serif text-xs font-medium">Comments ({commentCount})</h3>
+                <section className="flex flex-col gap-5 border-t border-surface-high bg-surface-low p-6 md:p-10" onClick={(event) => event.stopPropagation()}>
+                  <div className="flex flex-shrink-0 items-center justify-between gap-4">
+                    <h3 className="font-serif text-3xl font-medium md:text-4xl">Comments ({commentCount})</h3>
                   </div>
 
-                  <form className="mb-2 flex flex-col gap-1.5 flex-shrink-0" onSubmit={(e) => addComment(e, post.id)}>
+                  <form className="flex flex-shrink-0 flex-col gap-3 md:flex-row" onSubmit={(e) => addComment(e, post.id)}>
                     <input
-                      className="field text-xs px-3 py-2"
+                      className="field px-5 py-4 text-base md:text-lg"
                       value={commentDraft[post.id] || ""}
                       onChange={(e) => setCommentDraft((current) => ({ ...current, [post.id]: e.target.value }))}
                       placeholder="Add comment..."
                     />
-                    <button className="btn-primary text-xs py-1.5">Post</button>
+                    <button className="btn-primary px-8 py-4 text-base md:text-lg">Post</button>
                   </form>
 
                   {comments.length === 0 ? (
-                    <p className="text-xs text-on-surface-variant italic px-1">No comments yet. Be the first!</p>
+                    <p className="px-1 text-lg italic text-on-surface-variant">No comments yet. Be the first!</p>
                   ) : (
-                    <ul className="space-y-2 max-h-80 overflow-y-auto pr-2">
+                    <ul className="max-h-[34rem] space-y-4 overflow-y-auto pr-2">
                       {comments.map((comment) => {
                         const commentAuthor = getCommentAuthor(comment);
+                        const commentIdentity = commentAuthor?.username ? `@${commentAuthor.username}` : comment.email;
                         return (
-                          <li key={comment.id} className="flex gap-2 rounded-lg bg-white p-2">
+                          <li key={comment.id} className="flex gap-4 rounded-2xl bg-white p-5 shadow-sm">
                             <img
                               src={getCommentAvatar(comment, 0)}
                               alt={commentAuthor?.name || comment.email || "User"}
-                              className="h-6 w-6 flex-shrink-0 rounded-full border border-outline-variant object-cover"
+                              className="h-12 w-12 flex-shrink-0 rounded-full border border-outline-variant object-cover"
                             />
                             <div className="min-w-0 flex-1">
-                              <div className="flex items-center justify-between gap-1">
-                                <p className="truncate text-xs font-bold">{commentAuthor?.name || comment.email}</p>
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="min-w-0">
+                                  <p className="truncate text-base font-bold md:text-lg">{commentAuthor?.name || comment.email}</p>
+                                  <p className="truncate text-sm font-semibold text-on-surface-variant md:text-base">{commentIdentity}</p>
+                                </div>
                                 {Number(comment.userId) === Number(user.id) && (
-                                  <span className="flex-shrink-0 rounded-full bg-primary-soft px-1.5 py-0.5 text-[10px] font-bold text-primary">You</span>
+                                  <span className="flex-shrink-0 rounded-full bg-primary-soft px-3 py-1 text-xs font-bold text-primary md:text-sm">You</span>
                                 )}
                               </div>
-                              <p className="mt-0.5 text-xs leading-snug text-on-surface-variant break-words">{comment.body}</p>
+                              <p className="mt-2 break-words text-base leading-7 text-on-surface-variant md:text-lg md:leading-8">{comment.body}</p>
                             </div>
                           </li>
                         );

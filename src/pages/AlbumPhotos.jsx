@@ -3,7 +3,6 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { api } from "../lib/api.js";
 import { EmptyState, ErrorState, LoadingState } from "../components/Status.jsx";
-import { travelImages } from "../data/travelImages.js";
 import Icon from "../components/Icon.jsx";
 
 const PAGE_LIMIT = 6;
@@ -42,8 +41,8 @@ export default function AlbumPhotos() {
 
   async function addPhoto(event) {
     event.preventDefault();
-    if (!form.title.trim()) return;
-    const url = form.url.trim() || travelImages[(photos.length + Number(albumId)) % travelImages.length];
+    if (!form.title.trim() || !form.url.trim()) return;
+    const url = form.url.trim();
     const created = await api.post("/photos", {
       albumId: Number(albumId),
       title: form.title.trim(),
@@ -90,7 +89,7 @@ export default function AlbumPhotos() {
 
           <form className="mb-8 grid gap-3 rounded-[24px] bg-white p-5 shadow-spatial md:grid-cols-[1fr_1fr_auto]" onSubmit={addPhoto}>
             <input className="field" value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} placeholder="New photo title" />
-            <input className="field" value={form.url} onChange={(event) => setForm({ ...form, url: event.target.value })} placeholder="Image URL or leave blank" />
+            <input className="field" value={form.url} onChange={(event) => setForm({ ...form, url: event.target.value })} placeholder="Image URL" />
             <button className="btn-primary">
               <Icon name="add" />
               Add Photo

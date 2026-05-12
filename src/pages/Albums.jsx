@@ -3,7 +3,6 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { api } from "../lib/api.js";
 import { EmptyState, ErrorState, LoadingState } from "../components/Status.jsx";
-import { travelImages } from "../data/travelImages.js";
 import Icon from "../components/Icon.jsx";
 
 export default function Albums() {
@@ -50,8 +49,7 @@ export default function Albums() {
     try {
       const created = await api.post("/albums", {
         userId: user.id,
-        title: normalizedTitle,
-        cover: travelImages[albums.length % travelImages.length]
+        title: normalizedTitle
       });
       setAlbums((current) => [...current, created]);
       setTitle("");
@@ -95,10 +93,22 @@ export default function Albums() {
         <section className="grid auto-rows-[320px] grid-cols-1 gap-8 lg:grid-cols-3">
           {visibleAlbums.map((album, index) => {
             const large = index === 0 ? "lg:col-span-2 lg:row-span-2" : "";
-            const cover = album.cover || travelImages[index % travelImages.length];
+            const albumPhotos = photos.filter((photo) => Number(photo.albumId) === Number(album.id));
+            const coverPhoto = albumPhotos[0];
+            const cover = coverPhoto?.thumbnailUrl || coverPhoto?.url;
             return (
               <article key={album.id} className={`group relative overflow-hidden rounded-[32px] bg-white shadow-floating ${large}`}>
-                <img src={cover} alt={album.title} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+                {cover ? (
+                  <img src={cover} alt={album.title} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+                ) : (
+                  <div className="grid h-full w-full place-items-center bg-surface-low text-center text-on-surface-variant">
+                    <div className="px-8">
+                      <Icon name="image" className="mx-auto mb-4 text-outline" size={42} />
+                      <p className="font-serif text-3xl text-on-surface">No photos yet</p>
+                      <p className="mt-2 text-sm font-semibold">Add the first photo to set the album cover.</p>
+                    </div>
+                  </div>
+                )}
                 <div className="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-full bg-white/35 backdrop-blur-xl">
                   <Icon name="more_horiz" />
                 </div>
@@ -126,7 +136,6 @@ export default function Albums() {
         <AlbumPreview
           album={previewAlbum}
           photos={photos.filter((photo) => Number(photo.albumId) === Number(previewAlbum.id)).slice(0, 6)}
-          cover={previewAlbum.cover || travelImages[0]}
           manageUrl={`/users/${user.id}/albums/${previewAlbum.id}/photos`}
           onClose={() => setPreviewAlbum(null)}
         />
@@ -135,8 +144,8 @@ export default function Albums() {
   );
 }
 
-function AlbumPreview({ album, photos, cover, manageUrl, onClose }) {
-  const previewPhotos = photos.length ? photos : [{ id: "cover", title: album.title, url: cover }];
+function AlbumPreview({ album, photos, manageUrl, onClose }) {
+  const previewPhotos = photos;
   const [activeIndex, setActiveIndex] = useState(0);
   const activePhoto = previewPhotos[activeIndex];
 
@@ -164,7 +173,13 @@ function AlbumPreview({ album, photos, cover, manageUrl, onClose }) {
 
         <div className="flex min-h-0 flex-1 flex-col p-5 md:p-7">
           <div className="group relative min-h-[360px] flex-1 overflow-hidden rounded-[28px] bg-surface-low">
-            <img src={activePhoto.url} alt={activePhoto.title} className="h-full w-full object-cover" />
+            {activePhoto ? (
+              <img src={activePhoto.url} alt={activePhoto.title} className="h-full w-full object-cover" />
+            ) : (
+              <div className="grid h-full min-h-[360px] place-items-center p-6 text-center">
+                <EmptyState title="No photos yet" body="Use Manage photos to add images to this album." />
+              </div>
+            )}
 
             {previewPhotos.length > 1 && (
               <>
@@ -185,24 +200,26 @@ function AlbumPreview({ album, photos, cover, manageUrl, onClose }) {
               </>
             )}
 
-            <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between gap-4">
-              <div className="max-w-xl rounded-2xl bg-white/80 p-4 backdrop-blur-xl">
-                <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-primary">
-                  Photo {activeIndex + 1} of {previewPhotos.length}
-                </p>
-                <h3 className="mt-1 font-serif text-3xl">{activePhoto.title}</h3>
+            {activePhoto && (
+              <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between gap-4">
+                <div className="max-w-xl rounded-2xl bg-white/80 p-4 backdrop-blur-xl">
+                  <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-primary">
+                    Photo {activeIndex + 1} of {previewPhotos.length}
+                  </p>
+                  <h3 className="mt-1 font-serif text-3xl">{activePhoto.title}</h3>
+                </div>
+                <div className="hidden rounded-full bg-white/80 px-4 py-3 backdrop-blur-xl md:flex md:gap-2">
+                  {previewPhotos.map((photo, index) => (
+                    <button
+                      key={photo.id}
+                      className={`h-2 rounded-full transition ${index === activeIndex ? "w-8 bg-primary" : "w-2 bg-outline-variant hover:bg-outline"}`}
+                      onClick={() => goToPhoto(index)}
+                      aria-label={`Preview photo ${index + 1}`}
+                    />
+                  ))}
+                </div>
               </div>
-              <div className="hidden rounded-full bg-white/80 px-4 py-3 backdrop-blur-xl md:flex md:gap-2">
-                {previewPhotos.map((photo, index) => (
-                  <button
-                    key={photo.id}
-                    className={`h-2 rounded-full transition ${index === activeIndex ? "w-8 bg-primary" : "w-2 bg-outline-variant hover:bg-outline"}`}
-                    onClick={() => goToPhoto(index)}
-                    aria-label={`Preview photo ${index + 1}`}
-                  />
-                ))}
-              </div>
-            </div>
+            )}
           </div>
 
           {previewPhotos.length > 1 ? (
