@@ -1,5 +1,5 @@
-import { avatarImages } from "../data/travelImages.js";
-import Icon from "./Icon.jsx";
+import { avatarImages } from "../../data/travelImages.js";
+import Icon from "../ui/Icon.jsx";
 
 export default function InfoDrawer({ open, onClose, user }) {
   if (!open) return null;

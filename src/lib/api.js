@@ -1,10 +1,10 @@
 const API_BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:3001";
 const cacheStore = new Map();
 
-function buildUrl(path) {
+function buildUrl(path) {                                                
   if (path.startsWith("http")) return path;
   return `${API_BASE}${path.startsWith("/") ? path : `/${path}`}`;
-}
+}    
 
 async function request(path, options = {}) {
   const url = buildUrl(path);
@@ -21,7 +21,7 @@ async function request(path, options = {}) {
     headers: {
       "Content-Type": "application/json",
       ...(options.headers || {})
-    },
+    },                                                      
     body: options.body ? JSON.stringify(options.body) : undefined
   });
 

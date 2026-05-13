@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { useAuth } from "../context/AuthContext.jsx";
-import { api } from "../lib/api.js";
-import { EmptyState, ErrorState, LoadingState } from "../components/Status.jsx";
-import Icon from "../components/Icon.jsx";
+import { useAuth } from "../../context/AuthContext.jsx";
+import { api } from "../../lib/api.js";
+import { EmptyState, ErrorState, LoadingState } from "../../components/ui/Status.jsx";
+import Icon from "../../components/ui/Icon.jsx";
 
 const PAGE_LIMIT = 6;
 

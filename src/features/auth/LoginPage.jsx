@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext.jsx";
-import { travelImages } from "../data/travelImages.js";
+import { useAuth } from "../../context/AuthContext.jsx";
+import { travelImages } from "../../data/travelImages.js";
 
 export default function Login() {
   const { login, isAuthenticated, user } = useAuth();

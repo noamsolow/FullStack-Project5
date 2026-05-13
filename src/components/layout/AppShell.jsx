@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { NavLink, Navigate, Outlet, useLocation, useParams } from "react-router-dom";
-import { useAuth } from "../context/AuthContext.jsx";
-import { avatarImages } from "../data/travelImages.js";
+import { useAuth } from "../../context/AuthContext.jsx";
+import { avatarImages } from "../../data/travelImages.js";
 import InfoDrawer from "./InfoDrawer.jsx";
-import Icon from "./Icon.jsx";
+import Icon from "../ui/Icon.jsx";
 
 function activeClass({ isActive }) {
   return `px-3 py-2 text-sm font-semibold transition ${

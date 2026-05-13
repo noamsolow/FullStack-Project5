@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext.jsx";
-import { getRandomAvatar } from "../data/travelImages.js";
+import { useAuth } from "../../context/AuthContext.jsx";
+import { getRandomAvatar } from "../../data/travelImages.js";
 
 export default function RegisterDetails() {
   const pending = useMemo(() => {
