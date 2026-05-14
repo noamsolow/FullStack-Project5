@@ -5,3 +5,5 @@ dist
 tmp
 .playwright-cli
 output
+.codex/
+*.pdf
