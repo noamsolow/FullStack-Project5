@@ -136,7 +136,8 @@ src/
   data/            Travel image helpers
   lib/             API client and cache
   pages/           Login, register, feed, journal, trips, albums, photos
-db.json            Local JSON Server database
+data/
+  db.json          Local JSON Server database
 docs/screenshots/  README screenshots captured from the running app
 ```
 

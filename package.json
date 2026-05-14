@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "server": "json-server --watch db.json --port 3001 --host 127.0.0.1",
+    "server": "json-server --watch data/db.json --port 3001 --host 127.0.0.1",
     "build": "vite build",
     "preview": "vite preview"
   },
